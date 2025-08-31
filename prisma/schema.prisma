@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  phone         String   @unique
+  isKYCVerified Boolean  @default(false)
+  kycLevel      KYCLevel @default(L1)
+  twoFAEnabled  Boolean  @default(false)
+  twoFASecret   String?
+  referralCode  String?  @unique
+  referredBy    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  wallet        Wallet[]
+  transactions  Transaction[]
+  kycDocuments  KYCDocument[]
+  notifications Notification[]
+
+  @@index([email])
+  @@index([isKYCVerified])
+  @@index([kycLevel])
+  @@index([phone])
+  @@index([referralCode])
+}
+
+enum KYCLevel {
+  L1
+  L2
+  L3
+}
+
+model Wallet {
+  id         String     @id @default(uuid())
+  userId     String     @unique
+  balance    Float      @default(0.0)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  walletType WalletType
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([walletType])
+}
+
+model Transaction {
+  id           String            @id @default(uuid())
+  userId       String
+  type         TransactionType
+  cryptoType   CryptoType?
+  amountCrypto Float?
+  amountNGN    Float
+  rate         Float?
+  status       TransactionStatus
+  txHash       String?
+  bankAccount  String?
+  reference    String?
+  createdAt    DateTime          @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+enum TransactionType {
+  DEPOSIT
+  CONVERSION
+  WITHDRAWAL
+  BILL_PAYMENT
+}
+
+enum CryptoType {
+  USDT
+  SOL
+  BNB
+  BTC
+}
+
+enum WalletType {
+  NGN
+  USDT
+  SOL
+  BNB
+  BTC
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REVERSED
+}
+
+model KYCDocument {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  fileUrl   String
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model Notification {
+  id      String   @id @default(uuid())
+  userId  String
+  message String
+  sentAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}

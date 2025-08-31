@@ -38,8 +38,9 @@ export class HttpExceptionsFilter implements ExceptionFilter {
           ? { message: errorMessage }
           : (errorMessage as object)),
       };
-      this.logger.warn({
+      this.logger.error({
         message: 'Handled HttpException',
+        stack: exception.stack,
         error: responseObject,
       });
 

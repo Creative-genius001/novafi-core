@@ -6,11 +6,10 @@ import { LoggerModule } from './common/logger/logger.module';
 import { HttpExceptionsFilter } from './common/filters/http-exceptions.filter';
 import { AppService } from './app.service';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
-import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
-  imports: [LoggerModule, PrismaModule, AuthModule],
+  imports: [LoggerModule, AuthModule],
   controllers: [AppController],
   providers: [
     AppService,
@@ -23,6 +22,6 @@ import { AuthModule } from './modules/auth/auth.module';
       useClass: LoggingInterceptor,
     },
   ],
-  exports: [LoggerModule],
+  exports: [],
 })
 export class AppModule {}

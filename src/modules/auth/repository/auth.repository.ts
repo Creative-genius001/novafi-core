@@ -1,13 +1,17 @@
 /* eslint-disable prettier/prettier */
 
-import { PrismaService } from "src/infrastructure/prisma/prisma.service";
+import { PrismaService } from "../../../infrastructure/prisma/prisma.service";
 import { SignupDto } from "../dto/auth.dto";
-import { User } from "../../../../generated/prisma"
-import { NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { User } from "@prisma/client"
+import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { AppLogger } from "../../../common/logger/logger.service";
 
-export class AuthRepo {
+@Injectable()
+export class AuthRepository {
   constructor(
-    private readonly prisma: PrismaService
+    private readonly logger: AppLogger,
+    private readonly prisma: PrismaService,
+    
     ) {}
 
   async createUser(payload: SignupDto): Promise<User> {
@@ -24,6 +28,9 @@ export class AuthRepo {
   }
 
   async checkEmailExist(email: string): Promise<User | null> {
+    
+    this.logger.log({message: 'checking if email exist....'})
+    console.log('checking...')
     return await this.prisma.user.findUnique({
       where: { email },
     });

@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import type { LoginDto, SignupDto } from './dto/auth.dto';
+import type { LoginDto, SignupDto, VerifyOtpDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -15,5 +15,10 @@ export class AuthController {
   @Post('/login')
   async login(@Body() payload: LoginDto) {
     return this.authService.login(payload)
+  }
+
+  @Post('/verify-otp')
+  async verifyOtp(@Body() payload: VerifyOtpDto){
+    return this.authService.verifyOtp(payload)
   }
 }

@@ -1,8 +1,6 @@
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { BadRequestException, Body, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { AuthRepo } from './repo/auth.repo';
+import { AuthRepository } from './repository/auth.repository';
 import { AppLogger } from 'src/common/logger/logger.service';
 import { LoginDto, SignupDto } from './dto/auth.dto';
 import *  as bcrypt from 'bcrypt';
@@ -20,9 +18,10 @@ interface JwtPayload {
 export class AuthService {
   
     constructor(
-        private readonly repo: AuthRepo,
         private readonly logger: AppLogger,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        private readonly repo: AuthRepository,
+        
     ){}
 
     async login(payload: LoginDto){
@@ -31,7 +30,7 @@ export class AuthService {
         if(!user) {
             throw new BadRequestException('Incorrect credentials')
         };
-        const matches = await bcrypt.compare(payload.password, user.password) as boolean;
+        const matches = await bcrypt.compare(payload.password, user.password);
         if (!matches){
             throw new BadRequestException('Incorrect credentials')
         };
@@ -50,13 +49,13 @@ export class AuthService {
     }
 
     async signup(payload: SignupDto){
+        this.logger.info({message: 'signup service'})
         const existingUser = await this.repo.checkEmailExist(payload.email)
         if(existingUser){
             throw new BadRequestException('User already exist')
         }
         
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        const hashed = await bcrypt.hash(payload.password, 12) as string;
+        const hashed = await bcrypt.hash(payload.password, 12);
         payload.password = hashed;
         const newUserPayload = { ...payload, password: hashed };
         const user =  await this.repo.createUser(newUserPayload)
@@ -93,8 +92,7 @@ export class AuthService {
             throw new UnauthorizedException('Invalid refresh token')
         }
         
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const matches = bcrypt.compare(refreshToken, existingRefreshToken.refreshToken);
+        const matches = await bcrypt.compare(refreshToken, existingRefreshToken.refreshToken);
         if (!matches){
             throw new ForbiddenException(ERROR.FORBIDDEN)
         };
@@ -146,7 +144,7 @@ export class AuthService {
     }
 
     private async updateRefreshToken(userId: string, refreshToken: string, expiresAt: string) {
-        const hashed = await bcrypt.hash(refreshToken, 12) as string;
+        const hashed = await bcrypt.hash(refreshToken, 12);
         await this.repo.updateRefreshToken(userId, hashed, expiresAt)
     }
 }

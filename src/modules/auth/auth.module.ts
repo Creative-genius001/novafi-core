@@ -6,20 +6,23 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants/constant';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
-import { AuthRepo } from './repo/auth.repo';
-import { LoggerModule } from 'src/common/logger/logger.module';
+import { AuthRepository } from './repository/auth.repository';
+import { LoggerModule } from '../../common/logger/logger.module';
+import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 
 @Module({
     imports: [
+        LoggerModule,
         JwtModule.register({
             global: true,
             secret: jwtConstants.access_token_secret,
             signOptions: { expiresIn: '2d' },
         }),
         PassportModule,
-        LoggerModule
+        PrismaModule,
     ],
   controllers: [AuthController],
-  providers: [ AuthService, AuthRepo, JwtStrategy ],
+  providers: [ AuthRepository, AuthService, JwtStrategy ],
+  exports: [ AuthRepository ]
 })
 export class AuthModule {}

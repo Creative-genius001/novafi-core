@@ -22,6 +22,6 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
 
-  logger.info({message: `🚀 Application is running on: ${await app.getUrl()}`});
+  logger.info({message: `Application is running on: ${await app.getUrl()}`});
 }
 bootstrap();

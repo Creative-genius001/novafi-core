@@ -20,6 +20,8 @@ A production-oriented NestJS backend for a Nigeria-focused fintech where users d
 - **Redis** for cache/queues; **BullMQ** for jobs..
 - **Object storage** (S3-compatible) for KYC documents.
 - **Observability**: OpenTelemetry (traces/metrics), Prometheus, structured logs.
+- **Logger**: Robust production grade logger using winston
+- **Error Handling**: Centralized custom error handling and logging to both console and log file
 
 ## Local Development
 

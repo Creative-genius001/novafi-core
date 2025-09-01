@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { HttpExceptionsFilter } from './common/filters/http-exceptions.filter';
 import { AppLogger } from './common/logger/logger.service';
 import * as dotenv from 'dotenv';
+import helmet from 'helmet';
 
 async function bootstrap() {
   dotenv.config(); 
@@ -14,6 +15,7 @@ async function bootstrap() {
   
   const logger = app.get(AppLogger)
   app.useLogger(logger);
+  app.use(helmet())
 
   app.useGlobalFilters(new HttpExceptionsFilter(logger));
 

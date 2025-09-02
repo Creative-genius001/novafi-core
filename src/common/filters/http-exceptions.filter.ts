@@ -38,8 +38,8 @@ export class HttpExceptionsFilter implements ExceptionFilter {
           ? { message: errorMessage }
           : (errorMessage as object)),
       };
-      this.logger.error({
-        message: 'Handled HttpException',
+      this.logger.error(
+       'Handled HttpException',{
         stack: exception.stack,
         error: responseObject,
       });
@@ -55,8 +55,8 @@ export class HttpExceptionsFilter implements ExceptionFilter {
         message: exception.message,
       };
 
-      this.logger.error({
-        message: exception.message,
+      this.logger.error(
+        exception.message,{
         name: exception.name,
         stack: exception.stack,
       });
@@ -67,7 +67,7 @@ export class HttpExceptionsFilter implements ExceptionFilter {
         message: 'Unexpected error occurred',
       };
 
-      this.logger.error({exception});
+      this.logger.error('Unexpected error occurred', {exception});
     }
 
     return response.status(status).json(ERROR.INTERNAL_SERVER_ERROR);

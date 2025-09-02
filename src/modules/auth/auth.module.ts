@@ -9,6 +9,7 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthRepository } from './repository/auth.repository';
 import { LoggerModule } from '../../common/logger/logger.module';
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
+import { RedisModule } from 'src/infrastructure/redis/redis.module';
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
         }),
         PassportModule,
         PrismaModule,
+        RedisModule
     ],
   controllers: [AuthController],
   providers: [ AuthRepository, AuthService, JwtStrategy ],

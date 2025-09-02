@@ -22,6 +22,7 @@ A production-oriented NestJS backend for a Nigeria-focused fintech where users d
 - **Observability**: OpenTelemetry (traces/metrics), Prometheus, structured logs.
 - **Logger**: Robust production grade logger using winston
 - **Error Handling**: Centralized custom error handling and logging to both console and log file
+- **CI/CD**: Continous Integration with github actions
 
 ## Local Development
 

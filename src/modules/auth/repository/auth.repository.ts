@@ -28,9 +28,6 @@ export class AuthRepository {
   }
 
   async checkEmailExist(email: string): Promise<User | null> {
-    
-    this.logger.log({message: 'checking if email exist....'})
-    console.log('checking...')
     return await this.prisma.user.findUnique({
       where: { email },
     });
@@ -44,7 +41,7 @@ export class AuthRepository {
     } catch (error) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if(error.code === 'P2025'){
-            throw new NotFoundException('User does not exist');
+          throw new NotFoundException('User does not exist');
         }
         throw error;
     }
@@ -54,6 +51,13 @@ export class AuthRepository {
     return await this.prisma.user.update({
             where: { id: userId },
             data: { refreshToken: hashed, expiresAt },
+        });
+  }
+
+  async updateIsVerified(userId: string){
+    return await this.prisma.user.update({
+            where: { id: userId },
+            data: { isVerified: true },
         });
   }
 

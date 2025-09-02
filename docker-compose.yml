@@ -10,21 +10,23 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
 
-  # Uncomment to use redis
-  # redis:
-  #   image: redis:7-alpine
-  #   ports:
-  #     - 6379:6379
-
-  nest:
-    container_name: novafi
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      - postgres
+  redis:
+    image: redis:8.2.1-alpine
     ports:
-      - ${APP_PORT}:${APP_PORT}
+      - 6379:6379
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ['redis-server', '/usr/local/etc/redis/redis.conf']
+
+  # nest:
+  #   container_name: novafi
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - postgres
+  #   ports:
+  #     - ${APP_PORT}:${APP_PORT}
 
 volumes:
   novafi-db:

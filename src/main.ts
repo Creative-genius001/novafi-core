@@ -5,6 +5,7 @@ import { HttpExceptionsFilter } from './common/filters/http-exceptions.filter';
 import { AppLogger } from './common/logger/logger.service';
 import * as dotenv from 'dotenv';
 import helmet from 'helmet';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   dotenv.config(); 
@@ -18,10 +19,18 @@ async function bootstrap() {
   app.use(helmet())
 
   app.useGlobalFilters(new HttpExceptionsFilter(logger));
+  // app.useGlobalPipes(
+  //   new ValidationPipe({
+  //     whitelist: true, 
+  //     dismissDefaultMessages: true,
+  //     forbidNonWhitelisted: true, 
+  //     transform: true,
+  //   }),
+  // );
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
 
-  logger.info({message: `Application is running on: ${await app.getUrl()}`});
+  logger.info(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();

@@ -7,9 +7,10 @@ import { HttpExceptionsFilter } from './common/filters/http-exceptions.filter';
 import { AppService } from './app.service';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
+import { RedisModule } from './infrastructure/redis/redis.module';
 
 @Module({
-  imports: [LoggerModule, AuthModule],
+  imports: [LoggerModule, AuthModule,  RedisModule.forRootAsync()],
   controllers: [AppController],
   providers: [
     AppService,

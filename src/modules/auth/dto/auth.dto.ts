@@ -1,7 +1,6 @@
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import { IsEmail, IsNotEmpty, IsString, IsNumber, MinLength, MaxLength, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, MaxLength, Matches } from 'class-validator';
 
 export class SignupDto {
   @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/, { message: 'Invalid email format' })
@@ -42,11 +41,9 @@ export class LoginDto {
 
 
 export class VerifyOtpDto {
-  @IsEmail({}, { message: 'Invalid email format' })
   @IsNotEmpty({ message: 'Email cannot be empty' })
-  email: string;
+  userId: string;
 
-  @IsNumber({}, { message: 'OTP must be a number' })
   @IsNotEmpty({ message: 'OTP cannot be empty' })
-  otp: number;
+  otp: string;
 }

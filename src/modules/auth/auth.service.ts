@@ -2,12 +2,14 @@
 import { BadRequestException, Body, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthRepository } from './repository/auth.repository';
 import { AppLogger } from 'src/common/logger/logger.service';
-import { LoginDto, SignupDto } from './dto/auth.dto';
+import { LoginDto, SignupDto, VerifyOtpDto } from './dto/auth.dto';
 import *  as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './constants/constant';
 import { ERROR } from 'src/utils/error';
 import { SignupResponse } from './interface/auth.interface';
+import { generateSecureOTP } from 'src/utils/otp.utils';
+import { RedisService } from 'src/infrastructure/redis/redis.service';
 
 interface JwtPayload {
   sub: string;
@@ -21,10 +23,10 @@ export class AuthService {
         private readonly logger: AppLogger,
         private readonly jwtService: JwtService,
         private readonly repo: AuthRepository,
-        
+        private readonly redis: RedisService,
     ){}
 
-    async login(payload: LoginDto){
+    async login(payload: LoginDto, userAgent: string, ip: string){
         const { email } = payload;
         const user = await this.repo.findByEmail(email)
         if(!user) {
@@ -40,16 +42,35 @@ export class AuthService {
         const expiresAt = new Date(decoded.exp * 1000).toISOString();
         await this.updateRefreshToken(user.id, tokens.refreshToken, expiresAt);
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password, ...userData } = user;
-        return {
-        ...userData,
-        ...tokens,
-        };
+        this.logger.info('USER_LOGGED_IN', {
+            userId: user.id,
+            email: user.email,
+            ip,
+            userAgent,
+            timestamp: new Date().toISOString(),
+        })
+
+        const userData = {
+            id: user.id,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+            phone: user.phone,
+            isVerified: user.isVerified,
+            kycLevel: user.kycLevel,
+            twoFaEnabled: user.twoFaEnabled,
+            twoFaSecret: user.twoFaSecret,
+            referralCode: user.referralCode,
+            referredBy: user.referredBy,
+            refreshToken: tokens.refreshToken,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+            accessToken: tokens.accessToken
+        }
+        return { userData  };
     }
 
-    async signup(payload: SignupDto){
-        this.logger.info({message: 'signup service'})
+    async signup(payload: SignupDto, userAgent: string, ip: string){
         const existingUser = await this.repo.checkEmailExist(payload.email)
         if(existingUser){
             throw new BadRequestException('User already exist')
@@ -59,15 +80,24 @@ export class AuthService {
         payload.password = hashed;
         const newUserPayload = { ...payload, password: hashed };
         const user =  await this.repo.createUser(newUserPayload)
-
-        // const response: SignupResponse = {
-        //     userId: user.id,
-        //     message: 'Account created successfully. Please verify your account.',
-        //     maskedEmail: user.email
-        // }
         
-        const { password, ...userData } = user;
-        return { data: userData };
+        this.logger.info('USER_REGISTERED', {
+            userId: user.id,
+            email: user.email,
+            ip,
+            userAgent,
+            timestamp: new Date().toISOString(),
+        })
+        const response: SignupResponse = {
+            userId: user.id,
+            message: 'Account created successfully. Please verify your account.',
+            maskedEmail: user.email
+        }
+
+        const otp = generateSecureOTP()
+        this.logger.info('OTP-CODE', { otp })
+        await this.redis.set(`otp:${user.id}`, otp, 60);
+        return { response };
     }
 
     async refreshAccessToken(userId: string, refreshToken: string){
@@ -110,16 +140,28 @@ export class AuthService {
         return {accessToken, refreshToken};
     }
 
-    async sendOtp(){
+    async sendOtptoEmail(){
 
     }
 
-    async verifyOtp(){
+    async verifyOtp(payload: VerifyOtpDto){
+        const key = `otp:${payload.userId}`;
+        const storedOtp = await this.redis.get(key);
+        if (!storedOtp || storedOtp !== payload.otp) {
+            throw new BadRequestException('OTP is invalid or expired');
+        }
 
+    
+        await this.repo.updateIsVerified(payload.userId);
+
+        await this.redis.del(key);
+
+        return { isVerified: true };
     }
 
-    async resendOtp(){
-
+    async resendOtp(userId: string){
+        const otp = generateSecureOTP()
+        return await this.redis.set(`otp:${userId}`, otp, 60);
     }
 
     private getAccessTokenPayload(userId: string) {

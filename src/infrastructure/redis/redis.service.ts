@@ -7,10 +7,7 @@ export class RedisService {
   constructor(@Inject('REDIS_CLIENT') private readonly client: Redis) {}
 
   async get(key: string): Promise<string | null> {
-    console.log({key})
-    const d = this.client.get(key);
-    console.log({d})
-    return d
+    return this.client.get(key);
   }
 
   async set(key: string, value: string, ttl: number): Promise<string> {

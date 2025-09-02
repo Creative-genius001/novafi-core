@@ -47,3 +47,8 @@ export class VerifyOtpDto {
   @IsNotEmpty({ message: 'OTP cannot be empty' })
   otp: string;
 }
+
+export class RefreshTokenDto {
+  @IsString()
+  refreshToken: string;
+}

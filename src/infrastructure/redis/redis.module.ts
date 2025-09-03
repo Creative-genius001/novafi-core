@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisService } from './redis.service';
 import  IoRedis  from 'ioredis'; 
 import { AppLogger } from 'src/common/logger/logger.service';
+import { RedisLockService } from './redis-lock.service';
 
 @Module({})
 export class RedisModule {
@@ -36,7 +37,7 @@ export class RedisModule {
           inject: [ConfigService, AppLogger],
         },
       ],
-      exports: [RedisService],
+      exports: [RedisService, RedisLockService],
       global: true, 
     };
   }

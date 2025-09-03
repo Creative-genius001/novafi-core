@@ -72,3 +72,8 @@ export class RefreshTokenDto {
   @IsString()
   refreshToken: string;
 }
+
+export class CreateUserDto extends SignupDto {
+  @IsString()
+  novaId: string;
+}

@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
-import { Repository } from '../../infrastructure/prisma/repository/repository';
+import { Repository } from '../../infrastructure/prisma/repository/user.repository';
 import { AppLogger } from 'src/common/logger/logger.service';
 import { LoginDto, ResendOtpDto, SignupDto, VerifyOtpDto } from './dto/auth.dto';
 import *  as bcrypt from 'bcrypt';
@@ -8,10 +8,11 @@ import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './constants/constant';
 import { ERROR } from 'src/utils/error';
 import { SignupResponse } from './interface/auth.interface';
-import { generateSecureOTP } from 'src/utils/otp.utils';
+import { generateSecureOTP, generateNovaId } from 'src/utils/utils';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { maskEmail } from 'src/utils/maskEmail.utils';
 import { sendOtpEmail } from './nodemailer/nodemailer';
+import { RedisLockService } from 'src/infrastructure/redis/redis-lock.service';
 
 interface JwtPayload {
   sub: string;
@@ -26,6 +27,8 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly repo: Repository,
         private readonly redis: RedisService,
+        private readonly redisLock: RedisLockService,
+        private readonly maxRetries: number = 3,
     ){}
 
     async login(payload: LoginDto, userAgent: string, ip: string){
@@ -87,8 +90,13 @@ export class AuthService {
         
         const hashed = await bcrypt.hash(payload.password, 12);
         payload.password = hashed;
-        const newUserPayload = { ...payload, password: hashed };
+
+        const novaId = await this.generateUniqueAccountId(payload.email)
+
+        const newUserPayload = { ...payload, password: hashed, novaId };
+
         const user =  await this.repo.createUser(newUserPayload)
+
         const maskedEmail = maskEmail(user.email)
         
         this.logger.info('USER_REGISTERED', {
@@ -206,4 +214,46 @@ export class AuthService {
     private async updateRefreshToken(userId: string, refreshToken: string, expiresAt: string) {
         await this.repo.updateRefreshToken(userId, refreshToken, expiresAt)
     }
+
+    private async generateUniqueAccountId(email: string): Promise<string> {
+        const lockKey = `nova-id-lock:${email}`;
+        const usedNovaIdKey = 'used_nova_ids'
+
+        try {
+        
+        const lock = await this.redisLock.lock(lockKey, 15000);
+        this.logger.debug('Acquired lock for account ID generation');
+        
+        let retries = 0;
+
+        while (retries < this.maxRetries) {
+            const novaId = generateNovaId();
+
+            const exist = await this.redis.sisMember(usedNovaIdKey, novaId)
+
+            if (exist === 0) {
+                this.logger.debug('Released lock for account ID generation');
+                
+                await this.redis.saad(usedNovaIdKey, novaId)
+
+                await this.redisLock.release(lock)
+
+                this.logger.info('Generated unique nova ID', { novaId });
+
+                return novaId;
+            }
+
+            this.logger.warn('NOVA_ID_EXIST', { novaId });
+            retries++;
+
+        }
+
+            this.logger.error('Failed to generate unique account ID after max retries', { email, maxRetries: this.maxRetries });
+            throw new InternalServerErrorException('Unable to generate unique account ID');
+        
+        } catch (error) {
+            this.logger.error('Failed to generate account ID', error);
+            throw new InternalServerErrorException('Failed to generate unique account ID');
+        }
+  }
 }

@@ -18,6 +18,14 @@ export class RedisService {
     return this.client.del(key);
   }
 
+  async saad(key: string, item: string){
+    return this.client.sadd(key, item)
+  }
+
+  async sisMember(key: string, item: string){
+    return this.client.sismember(key, item)
+  }
+
   async keys(key: string): Promise<string[]>{
     return this.client.keys(key)
   }

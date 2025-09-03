@@ -6,7 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants/constant';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
-import { AuthRepository } from './repository/auth.repository';
+import { Repository } from '../../infrastructure/prisma/repository/repository';
 import { LoggerModule } from '../../common/logger/logger.module';
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { RedisModule } from 'src/infrastructure/redis/redis.module';
@@ -24,7 +24,6 @@ import { RedisModule } from 'src/infrastructure/redis/redis.module';
         RedisModule
     ],
   controllers: [AuthController],
-  providers: [ AuthRepository, AuthService, JwtStrategy ],
-  exports: [ AuthRepository ]
+  providers: [ Repository, AuthService, JwtStrategy ],
 })
 export class AuthModule {}

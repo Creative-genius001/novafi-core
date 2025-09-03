@@ -25,7 +25,7 @@ export class HttpExceptionsFilter implements ExceptionFilter {
       statusCode: status,
       path: request.url,
     };
-
+    
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();

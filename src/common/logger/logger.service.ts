@@ -48,31 +48,31 @@ export class AppLogger {
     }
   }
 
-  info(message: string, ...args) {
+  info(event: string, ...args) {
     if (args.length === 0){
-      return this.logger.info({ message });
+      return this.logger.info({ event });
     }
-    this.logger.info({ message, args });
+    this.logger.info({ event, args });
   }
 
-  warn(message: string, ...args) {
+  warn(event: string, ...args) {
     if (args.length === 0){
-      return this.logger.warn({ message });
+      return this.logger.warn({ event });
     }
-    this.logger.warn({ message, args });
+    this.logger.warn({ event, args });
   }
 
-  error(message: string, ...args) {
+  error(event: string, ...args) {
     if (args.length === 0){
-      return this.logger.error({ message });
+      return this.logger.error({ event });
     }
-    this.logger.error({ message, args });
+    this.logger.error({ event, args });
   }
 
-  debug(message: string, ...args) {
+  debug(event: string, ...args) {
     if (args.length === 0){
-      return this.logger.debug({ message });
+      return this.logger.debug({ event });
     }
-    this.logger.debug({ message, args });
+    this.logger.debug({ event, args });
   }
 }

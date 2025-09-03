@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
-import { AuthRepository } from './repository/auth.repository';
+import { Repository } from '../../infrastructure/prisma/repository/repository';
 import { AppLogger } from 'src/common/logger/logger.service';
 import { LoginDto, ResendOtpDto, SignupDto, VerifyOtpDto } from './dto/auth.dto';
 import *  as bcrypt from 'bcrypt';
@@ -24,7 +24,7 @@ export class AuthService {
     constructor(
         private readonly logger: AppLogger,
         private readonly jwtService: JwtService,
-        private readonly repo: AuthRepository,
+        private readonly repo: Repository,
         private readonly redis: RedisService,
     ){}
 

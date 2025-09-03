@@ -23,7 +23,8 @@ async function bootstrap() {
   //   new ValidationPipe({
   //     whitelist: true, 
   //     dismissDefaultMessages: true,
-  //     forbidNonWhitelisted: true, 
+  //     stopAtFirstError: true,
+  //     // forbidNonWhitelisted: true, 
   //     transform: true,
   //   }),
   // );

@@ -8,26 +8,26 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   firstname    String
   lastname     String
-  email        String   @unique
+  email        String    @unique
   password     String
-  phone        String   @unique
-  isVerified   Boolean  @default(false) @map("is_verified")
-  kycLevel     KYCLevel @default(L1) @map("kyc_level")
-  twoFaEnabled Boolean  @default(false) @map("two_fa_enabled")
-  twoFaSecret  String?  @map("two_fa_secret")
-  referralCode String?  @unique @map("referral_code")
-  referredBy   String?  @map("referred_by")
-  refreshToken String?  @map("refresh_token")
-  expiresAt    String?  @map("expires_at")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  phone        String    @unique
+  isVerified   Boolean   @default(false) @map("is_verified")
+  kycLevel     KYCLevel  @default(L1) @map("kyc_level")
+  kycStatus    KYCStatus @default(NONE) @map("kyc_status")
+  twoFaEnabled Boolean   @default(false) @map("two_fa_enabled")
+  twoFaSecret  String?   @map("two_fa_secret")
+  referralCode String?   @unique @map("referral_code")
+  referredBy   String?   @map("referred_by")
+  refreshToken String?   @map("refresh_token")
+  expiresAt    String?   @map("expires_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   wallet        Wallet?
   transactions  Transaction[]
-  kycDocuments  KYCDocument[]
   notifications Notification[]
 
   @@index([email])
@@ -42,6 +42,13 @@ enum KYCLevel {
   L1
   L2
   L3
+}
+
+enum KYCStatus {
+  NONE
+  PENDING
+  SUCCESSFUL
+  FAILED
 }
 
 model Wallet {
@@ -140,20 +147,6 @@ enum TransactionStatus {
   SUCCESSFUL
   FAILED
   REVERSED
-}
-
-model KYCDocument {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  type      String
-  fileUrl   String   @map("file_url")
-  verified  Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@map("kyc_document")
 }
 
 model Notification {

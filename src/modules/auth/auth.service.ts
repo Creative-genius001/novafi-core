@@ -2,7 +2,7 @@
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { AuthRepository } from './repository/auth.repository';
 import { AppLogger } from 'src/common/logger/logger.service';
-import { LoginDto, SignupDto, VerifyOtpDto } from './dto/auth.dto';
+import { LoginDto, ResendOtpDto, SignupDto, VerifyOtpDto } from './dto/auth.dto';
 import *  as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './constants/constant';
@@ -11,6 +11,7 @@ import { SignupResponse } from './interface/auth.interface';
 import { generateSecureOTP } from 'src/utils/otp.utils';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { maskEmail } from 'src/utils/maskEmail.utils';
+import { sendOtpEmail } from './nodemailer/nodemailer';
 
 interface JwtPayload {
   sub: string;
@@ -100,11 +101,14 @@ export class AuthService {
         const response: SignupResponse = {
             userId: user.id,
             message: 'Account created successfully. Please verify your account.',
+            email: user.email,
             maskedEmail
         }
 
         const otp = generateSecureOTP()
         await this.redis.set(`otp:${user.id}`, otp, 60);
+
+        await sendOtpEmail(user.email, otp)
 
         return { response };
     }
@@ -154,10 +158,6 @@ export class AuthService {
         return { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken};
     }
 
-    async sendOtptoEmail(){
-
-    }
-
     async verifyOtp(payload: VerifyOtpDto){
         const key = `otp:${payload.userId}`;
         const storedOtp = await this.redis.get(key);
@@ -173,9 +173,13 @@ export class AuthService {
         return { isVerified: true };
     }
 
-    async resendOtp(userId: string){
+    async resendOtp(payload: ResendOtpDto){
         const otp = generateSecureOTP()
-        return await this.redis.set(`otp:${userId}`, otp, 60);
+        await this.redis.set(`otp:${payload.userId}`, otp, 60);
+
+        await sendOtpEmail(payload.email, otp)
+
+        return { message: 'Verication code has been sent to your email' }
     }
 
     private getAccessTokenPayload(userId: string) {
@@ -200,7 +204,6 @@ export class AuthService {
     }
 
     private async updateRefreshToken(userId: string, refreshToken: string, expiresAt: string) {
-        // const hashed = await bcrypt.hash(refreshToken, 12);
         await this.repo.updateRefreshToken(userId, refreshToken, expiresAt)
     }
 }

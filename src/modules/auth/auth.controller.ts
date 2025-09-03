@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Ip, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Ip, Post, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import type { LoginDto, RefreshTokenDto, SignupDto, VerifyOtpDto } from './dto/auth.dto';
+import type { LoginDto, RefreshTokenDto, ResendOtpDto, SignupDto, VerifyOtpDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -37,8 +37,8 @@ export class AuthController {
   }
 
   @Post('/resend-otp')
-  async resendOtp(@Query('userId') userId: string){
-    return this.authService.resendOtp(userId)
+  async resendOtp(@Body()payload: ResendOtpDto){
+    return this.authService.resendOtp(payload)
   }
 
   @Post('/refresh')

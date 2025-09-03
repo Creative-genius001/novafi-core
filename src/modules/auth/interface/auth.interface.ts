@@ -3,6 +3,7 @@ export interface SignupResponse {
     message: string,
     userId: string,
     maskedEmail: string
+    email: string
 } 
 
 export interface LoginResponse {

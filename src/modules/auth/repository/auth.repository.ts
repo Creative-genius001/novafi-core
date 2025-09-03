@@ -31,7 +31,7 @@ export class AuthRepository {
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
-        throw new BadRequestException(`User already exists`);
+        throw new BadRequestException(`Phone number already exists`);
       }
     }
 
@@ -58,7 +58,7 @@ export class AuthRepository {
           throw new NotFoundException('User does not exist');
         }
       }
-      this.logger.error('Error finding user by email', error )  
+      this.logger.error('FIND_USER_BY_EMAIL', error )  
       throw error;
     }
   }
@@ -94,3 +94,23 @@ export class AuthRepository {
     }
   }
 }
+
+
+// const user = await this.prisma.$transaction(async (tx) => {
+//         const newUser = await tx.user.create({
+//           data: {
+//             email,
+//             password: hashedPassword,
+//             phone,
+//           },
+//         });
+
+//         await tx.wallet.create({
+//           data: {
+//             userId: newUser.id,
+//             balance: 0,
+//           },
+//         });
+
+//         return newUser;
+//       });

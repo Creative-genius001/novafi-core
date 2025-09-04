@@ -10,9 +10,11 @@ import { AuthModule } from './modules/auth/auth.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
 import { KycModule } from './modules/kyc/kyc.module';
 import { WalletModule } from './modules/wallet/wallet.module';
+import { UserModule } from './modules/user/user.module';
+import { TransactionModule } from './modules/transaction/transaction.module';
 
 @Module({
-  imports: [LoggerModule, AuthModule,  RedisModule.forRootAsync(), KycModule, WalletModule],
+  imports: [LoggerModule, AuthModule,  RedisModule.forRootAsync(), KycModule, WalletModule, UserModule, TransactionModule],
   controllers: [AppController],
   providers: [
     AppService,

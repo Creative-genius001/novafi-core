@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { IsEmail, IsNotEmpty, IsString, MinLength, MaxLength, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, MaxLength, Matches, IsOptional } from 'class-validator';
 
 const nigerianPhoneRegex = /^(\+234|0)?[789]\d{9}$/;
 
@@ -33,6 +33,14 @@ export class SignupDto {
   @IsNotEmpty({ message: 'Last name cannot be empty' })
   @IsString({ message: 'Last name must be a string' })
   lastname: string;
+
+  @IsOptional()
+  @IsString()
+  referredBy?: string;
+
+  @IsOptional()
+  @IsString()
+  referralCode?: string;
 }
 
 export class LoginDto {

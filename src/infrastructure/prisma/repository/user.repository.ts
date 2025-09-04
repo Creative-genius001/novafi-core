@@ -5,6 +5,8 @@ import { CreateUserDto } from "../../../modules/auth/dto/auth.dto";
 import { KYCStatus, Prisma, User } from "@prisma/client"
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { AppLogger } from "../../../common/logger/logger.service";
+import { UpdateUserDto } from "src/modules/user/dto/user.dto";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 @Injectable()
 export class Repository {
@@ -15,7 +17,7 @@ export class Repository {
     ) {}
 
   async createUser(payload: CreateUserDto): Promise<User> {
-  const { firstname, lastname, password, phone, email, novaId } = payload;
+  const { firstname, lastname, password, phone, email, novaId, referralCode, referredBy } = payload;
   
   try {
     const result = await this.prisma.$transaction(async (tx) => {
@@ -26,7 +28,9 @@ export class Repository {
           email,
           password,
           phone,
-          novaId
+          novaId,
+          referralCode,
+          referredBy
         },
       });
 
@@ -77,10 +81,25 @@ export class Repository {
     }
   }
 
-   async findById(userId: string): Promise<User | null> {
+   async findById(userId: string) {
     try {
         return await this.prisma.user.findUnique({
             where: { id: userId },
+            select: {
+              id: true,
+              firstname: true,
+              lastname: true,
+              email: true,
+              phone: true,
+              novaId: true,
+              isVerified: true,
+              kycLevel: true,
+              kycStatus: true,
+              twoFaEnabled: true,
+              twoFaSecret: true,
+              referralCode: true,
+              referredBy: true
+            }
         });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -127,6 +146,28 @@ export class Repository {
             data: { isVerified: true, kycStatus: 'SUCCESSFUL' },
         });
   }
+
+  async updateUser(userId: string, dto: UpdateUserDto) {
+
+    try {
+      return await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(dto.firstname !== undefined && { firstname: dto.firstname }),
+          ...(dto.lastname !== undefined && { lastname: dto.lastname }),
+        },
+        select: { firstname: true, lastname: true }
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === "P2025") {
+          throw new NotFoundException("User not found");
+        }
+      }
+      throw error;
+    }
+  }
+
 
   async getRefreshToken(userId: string){
     try {

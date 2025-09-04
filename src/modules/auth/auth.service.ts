@@ -21,14 +21,15 @@ interface JwtPayload {
 
 @Injectable()
 export class AuthService {
-  
+    
+    private readonly maxRetries: number = 3
+
     constructor(
         private readonly logger: AppLogger,
         private readonly jwtService: JwtService,
         private readonly repo: Repository,
         private readonly redis: RedisService,
         private readonly redisLock: RedisLockService,
-        private readonly maxRetries: number = 3,
     ){}
 
     async login(payload: LoginDto, userAgent: string, ip: string){
@@ -70,6 +71,7 @@ export class AuthService {
             phone: user.phone,
             isVerified: user.isVerified,
             kycLevel: user.kycLevel,
+            novaId: user.novaId,
             twoFaEnabled: user.twoFaEnabled,
             twoFaSecret: user.twoFaSecret,
             referralCode: user.referralCode,
@@ -222,7 +224,6 @@ export class AuthService {
         try {
         
         const lock = await this.redisLock.lock(lockKey, 15000);
-        this.logger.debug('Acquired lock for account ID generation');
         
         let retries = 0;
 
@@ -232,7 +233,6 @@ export class AuthService {
             const exist = await this.redis.sisMember(usedNovaIdKey, novaId)
 
             if (exist === 0) {
-                this.logger.debug('Released lock for account ID generation');
                 
                 await this.redis.saad(usedNovaIdKey, novaId)
 

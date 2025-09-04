@@ -9,9 +9,10 @@ import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
 import { KycModule } from './modules/kyc/kyc.module';
+import { WalletModule } from './modules/wallet/wallet.module';
 
 @Module({
-  imports: [LoggerModule, AuthModule,  RedisModule.forRootAsync(), KycModule],
+  imports: [LoggerModule, AuthModule,  RedisModule.forRootAsync(), KycModule, WalletModule],
   controllers: [AppController],
   providers: [
     AppService,

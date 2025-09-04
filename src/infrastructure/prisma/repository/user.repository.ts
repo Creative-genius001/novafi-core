@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 
 import { PrismaService } from "../prisma.service";
-import { SignupDto } from "../../../modules/auth/dto/auth.dto";
+import { CreateUserDto } from "../../../modules/auth/dto/auth.dto";
 import { KYCStatus, Prisma, User } from "@prisma/client"
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { AppLogger } from "../../../common/logger/logger.service";
@@ -14,20 +14,35 @@ export class Repository {
     
     ) {}
 
-  async createUser(payload: SignupDto): Promise<User> {
-  const { firstname, lastname, password, phone, email } = payload;
-  let user: User;
-
+  async createUser(payload: CreateUserDto): Promise<User> {
+  const { firstname, lastname, password, phone, email, novaId } = payload;
+  
   try {
-    user = await this.prisma.user.create({
+    const result = await this.prisma.$transaction(async (tx) => {
+    const user =  await tx.user.create({
       data: {
-        firstname,
-        lastname,
-        email,
-        password,
-        phone,
-      },
-    });
+          firstname,
+          lastname,
+          email,
+          password,
+          phone,
+          novaId
+        },
+      });
+
+      await tx.wallet.create({
+          data: {
+            userId: user.id,
+          },
+      });
+      
+
+      return user;
+
+    })
+
+    return result;
+    
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
@@ -38,9 +53,8 @@ export class Repository {
     this.logger.error('CREATING_USER', error);
     throw new InternalServerErrorException('Something went wrong while creating user');
   }
-
-  return user;
 }
+
   async checkEmailExist(email: string): Promise<User | null> {
     return await this.prisma.user.findUnique({
       where: { email },
@@ -79,6 +93,13 @@ export class Repository {
     }
   }
 
+  async checkNovaIdExist(novaId: string){
+    return await this.prisma.user.findUnique({
+      where: { novaId },
+      select: {novaId: true}
+    })
+  }
+
   async updateRefreshToken(userId: string, hashed: string, expiresAt: string){
     return await this.prisma.user.update({
             where: { id: userId },
@@ -89,7 +110,6 @@ export class Repository {
   async updateKycStatus(userId: string, kycStatus: KYCStatus){
     return await this.prisma.user.update({
             where: { id: userId },
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             data: { kycStatus },
         });
   }
@@ -125,23 +145,3 @@ export class Repository {
     }
   }
 }
-
-
-// const user = await this.prisma.$transaction(async (tx) => {
-//         const newUser = await tx.user.create({
-//           data: {
-//             email,
-//             password: hashedPassword,
-//             phone,
-//           },
-//         });
-
-//         await tx.wallet.create({
-//           data: {
-//             userId: newUser.id,
-//             balance: 0,
-//           },
-//         });
-
-//         return newUser;
-//       });

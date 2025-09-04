@@ -2,6 +2,9 @@
 CREATE TYPE "public"."KYCLevel" AS ENUM ('L1', 'L2', 'L3');
 
 -- CreateEnum
+CREATE TYPE "public"."KYCStatus" AS ENUM ('INACTIVE', 'PENDING', 'SUCCESSFUL', 'FAILED');
+
+-- CreateEnum
 CREATE TYPE "public"."TransactionType" AS ENUM ('DEPOSIT', 'TRANSFER', 'AIRTIME', 'ELECTRICITY', 'DATA');
 
 -- CreateEnum
@@ -10,16 +13,21 @@ CREATE TYPE "public"."TransactionStatus" AS ENUM ('PENDING', 'SUCCESSFUL', 'FAIL
 -- CreateTable
 CREATE TABLE "public"."user" (
     "id" TEXT NOT NULL,
+    "firstname" TEXT NOT NULL,
+    "lastname" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
-    "is_kyc_verified" BOOLEAN NOT NULL DEFAULT false,
-    "kycLevel" "public"."KYCLevel" NOT NULL DEFAULT 'L1',
+    "nova_id" TEXT NOT NULL,
+    "is_verified" BOOLEAN NOT NULL DEFAULT false,
+    "kyc_level" "public"."KYCLevel" NOT NULL DEFAULT 'L1',
+    "kyc_status" "public"."KYCStatus" NOT NULL DEFAULT 'INACTIVE',
     "two_fa_enabled" BOOLEAN NOT NULL DEFAULT false,
     "two_fa_secret" TEXT,
     "referral_code" TEXT,
     "referred_by" TEXT,
     "refresh_token" TEXT,
+    "expires_at" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -30,7 +38,6 @@ CREATE TABLE "public"."user" (
 CREATE TABLE "public"."wallet" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
-    "nova_id" TEXT NOT NULL,
     "balance" DECIMAL(65,30) NOT NULL DEFAULT 0.0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -92,18 +99,6 @@ CREATE TABLE "public"."bill" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."kyc_document" (
-    "id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
-    "file_url" TEXT NOT NULL,
-    "verified" BOOLEAN NOT NULL DEFAULT false,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "kyc_document_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "public"."notification" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
@@ -120,16 +115,19 @@ CREATE UNIQUE INDEX "user_email_key" ON "public"."user"("email");
 CREATE UNIQUE INDEX "user_phone_key" ON "public"."user"("phone");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "user_nova_id_key" ON "public"."user"("nova_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "user_referral_code_key" ON "public"."user"("referral_code");
 
 -- CreateIndex
 CREATE INDEX "user_email_idx" ON "public"."user"("email");
 
 -- CreateIndex
-CREATE INDEX "user_is_kyc_verified_idx" ON "public"."user"("is_kyc_verified");
+CREATE INDEX "user_is_verified_idx" ON "public"."user"("is_verified");
 
 -- CreateIndex
-CREATE INDEX "user_kycLevel_idx" ON "public"."user"("kycLevel");
+CREATE INDEX "user_kyc_level_idx" ON "public"."user"("kyc_level");
 
 -- CreateIndex
 CREATE INDEX "user_phone_idx" ON "public"."user"("phone");
@@ -139,9 +137,6 @@ CREATE INDEX "user_referral_code_idx" ON "public"."user"("referral_code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "wallet_user_id_key" ON "public"."wallet"("user_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "wallet_nova_id_key" ON "public"."wallet"("nova_id");
 
 -- CreateIndex
 CREATE INDEX "wallet_user_id_idx" ON "public"."wallet"("user_id");
@@ -180,9 +175,6 @@ CREATE UNIQUE INDEX "bill_transaction_id_key" ON "public"."bill"("transaction_id
 CREATE INDEX "bill_reference_id_idx" ON "public"."bill"("reference_id");
 
 -- CreateIndex
-CREATE INDEX "kyc_document_user_id_idx" ON "public"."kyc_document"("user_id");
-
--- CreateIndex
 CREATE INDEX "notification_user_id_idx" ON "public"."notification"("user_id");
 
 -- AddForeignKey
@@ -199,9 +191,6 @@ ALTER TABLE "public"."deposit" ADD CONSTRAINT "deposit_transaction_id_fkey" FORE
 
 -- AddForeignKey
 ALTER TABLE "public"."bill" ADD CONSTRAINT "bill_transaction_id_fkey" FOREIGN KEY ("transaction_id") REFERENCES "public"."transaction"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."kyc_document" ADD CONSTRAINT "kyc_document_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."notification" ADD CONSTRAINT "notification_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

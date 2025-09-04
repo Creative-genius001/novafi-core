@@ -5,12 +5,14 @@ import Redlock from 'redlock';
 
 @Injectable()
 export class RedisLockService implements OnModuleInit {
+    
   private redlock: Redlock;
 
   constructor(@Inject('REDIS_CLIENT') private readonly redis: Redis) {}
 
   onModuleInit() {
-    this.redlock = new Redlock([this.redis], {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    this.redlock = new Redlock([this.redis as any], {
       retryCount: 10,
       retryDelay: 200,
     });

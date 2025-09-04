@@ -14,9 +14,10 @@ model User {
   email        String    @unique
   password     String
   phone        String    @unique
+  novaId       String    @unique @map("nova_id")
   isVerified   Boolean   @default(false) @map("is_verified")
   kycLevel     KYCLevel  @default(L1) @map("kyc_level")
-  kycStatus    KYCStatus @default(NONE) @map("kyc_status")
+  kycStatus    KYCStatus @default(INACTIVE) @map("kyc_status")
   twoFaEnabled Boolean   @default(false) @map("two_fa_enabled")
   twoFaSecret  String?   @map("two_fa_secret")
   referralCode String?   @unique @map("referral_code")
@@ -35,6 +36,7 @@ model User {
   @@index([kycLevel])
   @@index([phone])
   @@index([referralCode])
+  @@index([novaId])
   @@map("user")
 }
 
@@ -45,7 +47,7 @@ enum KYCLevel {
 }
 
 enum KYCStatus {
-  NONE
+  INACTIVE
   PENDING
   SUCCESSFUL
   FAILED
@@ -54,7 +56,6 @@ enum KYCStatus {
 model Wallet {
   id        String   @id @default(uuid())
   userId    String   @unique @map("user_id")
-  novaId    String   @unique @map("nova_id")
   balance   Decimal  @default(0.0)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

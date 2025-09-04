@@ -1,7 +1,5 @@
 /* eslint-disable prettier/prettier */
-// src/redis/redis.module.ts
 import { Module, DynamicModule } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisService } from './redis.service';
 import  IoRedis  from 'ioredis'; 
 import { AppLogger } from 'src/common/logger/logger.service';
@@ -13,15 +11,16 @@ export class RedisModule {
   static forRootAsync(): DynamicModule {
     return {
       module: RedisModule,
-      imports: [ConfigModule],
+      imports: [],
       providers: [
         RedisService,
+        RedisLockService,
         {
           provide: 'REDIS_CLIENT',
-          useFactory: (configService: ConfigService, logger: AppLogger) => {
+          useFactory: (logger: AppLogger) => {
             const client = new IoRedis({
-              host: configService.get<string>('REDIS_HOST', 'localhost'),
-              port: configService.get<number>('REDIS_PORT', 6379),
+              host: 'localhost',
+              port: 6379,
             });
             client.on('connecting', ()=> {
               logger.info('Redis is connecting')
@@ -34,7 +33,7 @@ export class RedisModule {
             });
             return client;
           },
-          inject: [ConfigService, AppLogger],
+          inject: [AppLogger],
         },
       ],
       exports: [RedisService, RedisLockService],

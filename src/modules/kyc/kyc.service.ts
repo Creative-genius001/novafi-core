@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { AppLogger } from 'src/common/logger/logger.service';
-import { Repository } from 'src/infrastructure/prisma/repository/repository';
+import { Repository } from 'src/infrastructure/prisma/repository/user.repository';
 import axios, { AxiosError } from 'axios'
 import axiosRetry from 'axios-retry';
 import { config } from 'src/config/config';

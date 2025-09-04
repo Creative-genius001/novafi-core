@@ -2,7 +2,7 @@
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { Repository } from '../../infrastructure/prisma/repository/user.repository';
 import { AppLogger } from 'src/common/logger/logger.service';
-import { LoginDto, ResendOtpDto, SignupDto, VerifyOtpDto } from './dto/auth.dto';
+import { LoginDto, ResendOtpDto, SignupDto, StartEmailChangeDto, VerifyOtpDto, VerifyPasswordChangeDto } from './dto/auth.dto';
 import *  as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './constants/constant';
@@ -11,8 +11,9 @@ import { SignupResponse } from './interface/auth.interface';
 import { generateSecureOTP, generateNovaId } from 'src/utils/utils';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { maskEmail } from 'src/utils/maskEmail.utils';
-import { sendOtpEmail } from './nodemailer/nodemailer';
+import { changeEmailOtp, sendSigupOtp } from './nodemailer/nodemailer';
 import { RedisLockService } from 'src/infrastructure/redis/redis-lock.service';
+import { hashOtp, verifyOtpHash, withinCooldown } from './helper/helper';
 
 interface JwtPayload {
   sub: string;
@@ -22,7 +23,11 @@ interface JwtPayload {
 @Injectable()
 export class AuthService {
     
-    private readonly maxRetries: number = 3
+    private readonly maxRetries: number = 3;
+    private readonly EMAIL_CHG_KEY = (userId: string) => `emailchg:${userId}`;
+    private readonly PWD_CHG_KEY   = (userId: string) => `pwdchg:${userId}`;
+    private readonly DAYS_LIMIT = 21;
+
 
     constructor(
         private readonly logger: AppLogger,
@@ -118,7 +123,7 @@ export class AuthService {
         const otp = generateSecureOTP()
         await this.redis.set(`otp:${user.id}`, otp, 60);
 
-        await sendOtpEmail(user.email, otp)
+        await sendSigupOtp(user.email, otp)
 
         return { response };
     }
@@ -187,7 +192,7 @@ export class AuthService {
         const otp = generateSecureOTP()
         await this.redis.set(`otp:${payload.userId}`, otp, 60);
 
-        await sendOtpEmail(payload.email, otp)
+        await sendSigupOtp(payload.email, otp)
 
         return { message: 'Verication code has been sent to your email' }
     }
@@ -255,5 +260,140 @@ export class AuthService {
             this.logger.error('Failed to generate account ID', error);
             throw new InternalServerErrorException('Failed to generate unique account ID');
         }
-  }
+    }
+
+    async startEmailChange(userId: string, payload: StartEmailChangeDto) {
+        
+        const { password, newEmail } = payload;
+
+        const throttleKey = `${this.EMAIL_CHG_KEY(userId)}:count`;
+        const count = await this.redis.incr(throttleKey);
+        if (count === 1) await this.redis.expire(throttleKey, 3600);
+        if (count > 3) {
+            throw new BadRequestException('Too many attempts, try later');
+        }
+
+        const user = await this.repo.retrivePassword(userId);
+        if (!user) throw new ForbiddenException(ERROR.FORBIDDEN);
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        if (user.lastEmailChangeAt && withinCooldown(user.lastEmailChangeAt, this.DAYS_LIMIT)) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+            const nextDate = new Date(user.lastEmailChangeAt.getTime() + this.DAYS_LIMIT * 86400000);
+            throw new BadRequestException(`Email can only be changed again after ${nextDate.toDateString()}`);
+        }
+
+        const ok = await bcrypt.compare(password, user.password);
+        if (!ok) throw new BadRequestException('Invalid current password');
+
+        const existing = await this.repo.findByEmail(newEmail);
+        if (existing) throw new BadRequestException('Email already in use');
+
+
+        const otp = generateSecureOTP();
+        const otpHash = await hashOtp(otp);
+
+        await this.redis.set(
+        this.EMAIL_CHG_KEY(userId),
+            JSON.stringify({ otpHash, attempts: 0, targetEmail: newEmail }),
+            6000, 
+        );
+
+        await changeEmailOtp(newEmail, otp)
+
+        return { message: 'OTP sent to new email' };
+    }
+
+    async verifyEmailChange(userId: string, otp: string) {
+
+        const raw = await this.redis.get(this.EMAIL_CHG_KEY(userId));
+        if (!raw) throw new BadRequestException('Otp expired');
+
+        const payload = JSON.parse(raw) as { otpHash: string; attempts: number; targetEmail: string };
+        if (payload.attempts >= 3) {
+            throw new BadRequestException('Too many attempts');
+        }
+
+        const ok = await verifyOtpHash(payload.otpHash, otp);
+        if (!ok) {
+            payload.attempts += 1;
+            await this.redis.set(this.EMAIL_CHG_KEY(userId), JSON.stringify(payload), 10 * 60);
+            throw new BadRequestException('Invalid otp code');
+        }
+
+        //include a transaction to update audit logs later
+        const updated = await this.repo.updateEmail(userId, payload.targetEmail)
+
+        await this.redis.del(this.EMAIL_CHG_KEY(userId));
+
+        return {...updated, message: "Email updated"};
+    }
+
+    async startPasswordChange(userId: string, currentPassword: string) {
+
+        const throttleKey = `${this.PWD_CHG_KEY(userId)}:count`;
+        const count = await this.redis.incr(throttleKey);
+        if (count === 1) await this.redis.expire(throttleKey, 3600);
+        if (count > 3) {
+            await this.redis.del(throttleKey)
+            throw new BadRequestException('Too many attempts, try later');
+        }
+
+        const user = await this.repo.retrivePassword(userId);
+        if (!user) throw new ForbiddenException(ERROR.FORBIDDEN);
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        if (user.lastPasswordChangeAt && withinCooldown(user.lastPasswordChangeAt, this.DAYS_LIMIT)) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+            const nextDate = new Date(user.lastPasswordChangeAt.getTime() + this.DAYS_LIMIT * 86400000);
+            throw new BadRequestException(`Email can only be changed again after ${nextDate.toDateString()}`);
+        }
+
+        const ok = await bcrypt.compare(currentPassword, user.password);
+        if (!ok) throw new BadRequestException('Invalid current password');
+
+
+        const otp = generateSecureOTP();
+        const otpHash = await hashOtp(otp);
+
+        await this.redis.set(
+        this.PWD_CHG_KEY(userId),
+            JSON.stringify({ otpHash, attempts: 0 }),
+            10 * 60, 
+        );
+
+        await changeEmailOtp(user.email, otp)
+
+        return { message: 'OTP sent to new email' };
+    }
+
+    async verifyPasswordChange(userId: string, body: VerifyPasswordChangeDto) {
+
+        const { otp, newPassword } = body;
+
+        const raw = await this.redis.get(this.PWD_CHG_KEY(userId));
+        if (!raw) throw new BadRequestException('Otp expired');
+
+        const payload = JSON.parse(raw) as { otpHash: string; attempts: number; };
+        if (payload.attempts >= 3) {
+            await this.redis.del(this.PWD_CHG_KEY(userId));
+            throw new BadRequestException('Too many attempts');
+        }
+
+        const ok = await verifyOtpHash(payload.otpHash, otp);
+        if (!ok) {
+            payload.attempts += 1;
+            await this.redis.set(this.PWD_CHG_KEY(userId), JSON.stringify(payload), 10 * 60);
+            throw new BadRequestException('Invalid otp code');
+        }
+
+        //include a transaction to update audit logs later
+        await this.repo.updatePassword(userId, newPassword)
+
+        await this.redis.del(this.EMAIL_CHG_KEY(userId));
+
+        return {
+            message: "Password updated"
+        };
+    }
 }

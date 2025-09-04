@@ -22,11 +22,43 @@ const transporter: NodemailerTransporter = nodemailer.createTransport({
 });
 
 
-export async function sendOtpEmail(email: string, otp: string): Promise<void> {
+export async function sendSigupOtp(email: string, otp: string): Promise<void> {
   const mailOptions: nodemailer.SendMailOptions = {
     from: '"Novafi" admin@edspl.com.au',
     to: email,
     subject: 'OTP Verification Code',
+    text: `Your OTP is: ${otp}. It will expire shortly.`,
+    html: `<b>Your OTP is: ${otp}</b>`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    throw new Error('Failed to send OTP email.', error);
+  }
+}
+
+export async function changeEmailOtp(email: string, otp: string): Promise<void> {
+  const mailOptions: nodemailer.SendMailOptions = {
+    from: '"Novafi" admin@edspl.com.au',
+    to: email,
+    subject: 'Verify your new email',
+    text: `Your OTP is: ${otp}. It will expire shortly.`,
+    html: `<b>Your OTP is: ${otp}</b>`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    throw new Error('Failed to send OTP email.', error);
+  }
+}
+
+export async function changePasswordOtp(email: string, otp: string): Promise<void> {
+  const mailOptions: nodemailer.SendMailOptions = {
+    from: '"Novafi" admin@edspl.com.au',
+    to: email,
+    subject: 'Password change verification code',
     text: `Your OTP is: ${otp}. It will expire shortly.`,
     html: `<b>Your OTP is: ${otp}</b>`,
   };

@@ -8,24 +8,26 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(uuid())
-  firstname    String
-  lastname     String
-  email        String    @unique
-  password     String
-  phone        String    @unique
-  novaId       String    @unique @map("nova_id")
-  isVerified   Boolean   @default(false) @map("is_verified")
-  kycLevel     KYCLevel  @default(L1) @map("kyc_level")
-  kycStatus    KYCStatus @default(INACTIVE) @map("kyc_status")
-  twoFaEnabled Boolean   @default(false) @map("two_fa_enabled")
-  twoFaSecret  String?   @map("two_fa_secret")
-  referralCode String?   @unique @map("referral_code")
-  referredBy   String?   @map("referred_by")
-  refreshToken String?   @map("refresh_token")
-  expiresAt    String?   @map("expires_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  id                   String    @id @default(uuid())
+  firstname            String
+  lastname             String
+  email                String    @unique
+  password             String
+  phone                String    @unique
+  novaId               String    @unique @map("nova_id")
+  isVerified           Boolean   @default(false) @map("is_verified")
+  kycLevel             KYCLevel  @default(L1) @map("kyc_level")
+  kycStatus            KYCStatus @default(INACTIVE) @map("kyc_status")
+  twoFaEnabled         Boolean   @default(false) @map("two_fa_enabled")
+  twoFaSecret          String?   @map("two_fa_secret")
+  referralCode         String?   @unique @map("referral_code")
+  referredBy           String?   @map("referred_by")
+  refreshToken         String?   @map("refresh_token")
+  expiresAt            String?   @map("expires_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  lastEmailChangeAt    DateTime? @map("last_email_change_at")
+  lastPasswordChangeAt DateTime? @map("last_password_change_at")
 
   wallet        Wallet?
   transactions  Transaction[]

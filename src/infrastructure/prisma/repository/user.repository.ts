@@ -81,7 +81,29 @@ export class Repository {
     }
   }
 
-   async findById(userId: string) {
+  async retrivePassword(userId: string) {
+    try {
+        return await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+              password: true,
+              email: true,
+              lastEmailChangeAt: true,
+              lastPasswordChangeAt: true,
+            }
+        });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+       if(error.code === 'P2025'){
+          throw new NotFoundException('User does not exist');
+        }
+      }
+      this.logger.error('FIND_USER_BY_EMAIL', error )  
+      throw error;
+    }
+  }
+
+  async findById(userId: string) {
     try {
         return await this.prisma.user.findUnique({
             where: { id: userId },
@@ -124,6 +146,27 @@ export class Repository {
             where: { id: userId },
             data: { refreshToken: hashed, expiresAt },
         });
+  }
+
+  async updateEmail(userId: string, email: string){
+    return await this.prisma.user.update({
+      where: { id: userId },
+      data: { 
+        email,
+        lastEmailChangeAt: new Date()
+       },
+      select: { id: true, email: true },
+    });
+  }
+
+  async updatePassword(userId: string, password: string){
+    return await this.prisma.user.update({
+      where: { id: userId },
+      data: { 
+        password, 
+        lastPasswordChangeAt: new Date()
+      },
+    });
   }
 
   async updateKycStatus(userId: string, kycStatus: KYCStatus){

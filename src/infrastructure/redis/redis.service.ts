@@ -30,6 +30,14 @@ export class RedisService {
     return this.client.keys(key)
   }
 
+  async incr(key: string): Promise<number>{
+    return this.client.incr(key)
+  }
+
+  async expire(key: string, ttl: number){
+    return this.client.expire(key, ttl)
+  }
+
   async jsonSet(key: string, path: string, data: any): Promise<string> {
     return this.client.call('JSON.SET', key, path, JSON.stringify(data)) as Promise<string>;
   }

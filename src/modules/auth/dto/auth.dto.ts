@@ -43,6 +43,40 @@ export class SignupDto {
   referralCode?: string;
 }
 
+export class StartPasswordChangeDto {
+  @IsString() @MinLength(8)
+  password: string;
+}
+
+export class VerifyPasswordChangeDto {
+  @IsString() @MinLength(6)
+  otp: string;
+
+  @IsString()
+  @MinLength(8)
+  @MaxLength(30)
+  @Matches(strongPasswordRegex, { 
+    message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.' 
+  })
+  newPassword: string;
+}
+
+export class StartEmailChangeDto {
+  @IsString() 
+  @MinLength(8)
+  password: string;
+
+  @IsEmail()
+  newEmail: string;
+}
+
+export class VerifyEmailChangeDto {
+  @IsString() 
+  @MinLength(6)
+  @MaxLength(6)
+  otp: string;
+}
+
 export class LoginDto {
   @IsNotEmpty({ message: 'Email cannot be empty' })
   @IsString()

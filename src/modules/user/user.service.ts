@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
-import { Repository } from 'src/infrastructure/prisma/repository/user.repository';
-import { UpdateUserDto } from './dto/user.dto';
+import { Repository } from 'src/modules/user/repo/user.repository';
+import { createBeneficiaryDto, UpdateUserDto } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
@@ -19,5 +19,9 @@ export class UserService {
         const updatedUser =  await this.repo.updateUser(userId, payload)
 
         return updatedUser;
+    }
+
+    async createBeneficiary(userId: string, payload: createBeneficiaryDto){
+        return await this.repo.creatBeneficiary(userId, payload) 
     }
 }

@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { IsOptional, IsString } from "class-validator";
+import { IsOptional, IsString, IsNotEmpty } from "class-validator";
 
 export class UpdateUserDto {
   @IsOptional()
@@ -10,4 +10,26 @@ export class UpdateUserDto {
   @IsString()
   lastname?: string;
 
+}
+
+export class createBeneficiaryDto{
+  @IsNotEmpty()
+  @IsString()
+  bankCode: string;
+
+  @IsNotEmpty()
+  @IsString()
+  accountNumber: string;
+
+  @IsNotEmpty()
+  @IsString()
+  beneficiaryName: string;
+
+  @IsOptional()
+  @IsString()
+  currency: string;
+
+  @IsNotEmpty()
+  @IsString()
+  bankName: string;
 }

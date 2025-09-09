@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
-import { Repository } from '../../infrastructure/prisma/repository/user.repository';
+import { Repository } from '../user/repo/user.repository';
 import { AppLogger } from 'src/common/logger/logger.service';
 import { LoginDto, ResendOtpDto, SignupDto, StartEmailChangeDto, VerifyOtpDto, VerifyPasswordChangeDto } from './dto/auth.dto';
 import *  as bcrypt from 'bcrypt';
@@ -74,8 +74,8 @@ export class AuthService {
             lastname: user.lastname,
             email: user.email,
             phone: user.phone,
-            isVerified: user.isVerified,
-            kycLevel: user.kycLevel,
+            isEmailVerified: user.isEmailVerified,
+            isKycVerified: user.isKycVerified,
             novaId: user.novaId,
             twoFaEnabled: user.twoFaEnabled,
             twoFaSecret: user.twoFaSecret,
@@ -144,7 +144,6 @@ export class AuthService {
             expiresAt: string | null;
         } | null = await this.repo.getRefreshToken(userId);
 
-        this.logger.debug('REFRESH TOKEN', stored)
         if(!stored || stored.refreshToken === null){
             throw new UnauthorizedException('Invalid refresh token')
         }
@@ -158,7 +157,6 @@ export class AuthService {
         }
         
         const tokens = await this.generateTokens(userId);
-        this.logger.debug('NEW TOKENS', tokens)
 
         const decoded: JwtPayload = this.jwtService.decode(tokens.refreshToken);
         if (!decoded || typeof decoded === 'string' || typeof decoded.exp !== 'number') {
@@ -181,7 +179,7 @@ export class AuthService {
         }
 
     
-        await this.repo.updateIsVerified(payload.userId);
+        await this.repo.updateEmailStatus(payload.userId);
 
         await this.redis.del(key);
 
@@ -276,9 +274,8 @@ export class AuthService {
         const user = await this.repo.retrivePassword(userId);
         if (!user) throw new ForbiddenException(ERROR.FORBIDDEN);
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    
         if (user.lastEmailChangeAt && withinCooldown(user.lastEmailChangeAt, this.DAYS_LIMIT)) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             const nextDate = new Date(user.lastEmailChangeAt.getTime() + this.DAYS_LIMIT * 86400000);
             throw new BadRequestException(`Email can only be changed again after ${nextDate.toDateString()}`);
         }
@@ -342,9 +339,7 @@ export class AuthService {
         const user = await this.repo.retrivePassword(userId);
         if (!user) throw new ForbiddenException(ERROR.FORBIDDEN);
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         if (user.lastPasswordChangeAt && withinCooldown(user.lastPasswordChangeAt, this.DAYS_LIMIT)) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             const nextDate = new Date(user.lastPasswordChangeAt.getTime() + this.DAYS_LIMIT * 86400000);
             throw new BadRequestException(`Email can only be changed again after ${nextDate.toDateString()}`);
         }

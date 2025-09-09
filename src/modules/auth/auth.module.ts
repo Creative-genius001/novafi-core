@@ -6,10 +6,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants/constant';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
-import { Repository } from '../../infrastructure/prisma/repository/user.repository';
+import { Repository } from '../user/repo/user.repository';
 import { LoggerModule } from '../../common/logger/logger.module';
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { RedisModule } from 'src/infrastructure/redis/redis.module';
+import { FlutterwaveModule } from 'src/flutterwave/flutterwave.module';
 
 @Module({
     imports: [
@@ -21,7 +22,8 @@ import { RedisModule } from 'src/infrastructure/redis/redis.module';
         }),
         PassportModule,
         PrismaModule,
-        RedisModule
+        RedisModule,
+        FlutterwaveModule
     ],
   controllers: [AuthController],
   providers: [ Repository, AuthService, JwtStrategy ],

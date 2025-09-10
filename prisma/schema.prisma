@@ -15,9 +15,8 @@ model User {
   password             String
   phone                String    @unique
   novaId               String    @unique @map("nova_id")
-  isVerified           Boolean   @default(false) @map("is_verified")
-  kycLevel             KYCLevel  @default(L1) @map("kyc_level")
-  kycStatus            KYCStatus @default(INACTIVE) @map("kyc_status")
+  isKycVerified        KycStatus @default(NOT_STARTED) @map("is_kyc_verified")
+  isEmailVerified      KycStatus @default(PENDING) @map("is_email_verified")
   twoFaEnabled         Boolean   @default(false) @map("two_fa_enabled")
   twoFaSecret          String?   @map("two_fa_secret")
   referralCode         String?   @unique @map("referral_code")
@@ -34,25 +33,19 @@ model User {
   notifications Notification[]
 
   @@index([email])
-  @@index([isVerified])
-  @@index([kycLevel])
+  @@index([isEmailVerified])
+  @@index([isKycVerified])
   @@index([phone])
   @@index([referralCode])
   @@index([novaId])
   @@map("user")
 }
 
-enum KYCLevel {
-  L1
-  L2
-  L3
-}
-
-enum KYCStatus {
-  INACTIVE
+enum KycStatus {
+  NOT_STARTED
   PENDING
-  SUCCESSFUL
   FAILED
+  VERIFIED
 }
 
 model Wallet {
@@ -71,6 +64,8 @@ model Wallet {
 model Transaction {
   id        String            @id @default(uuid())
   userId    String            @map("user_id")
+  amount    Decimal
+  fee       Decimal
   type      TransactionType
   status    TransactionStatus
   createdAt DateTime          @default(now()) @map("created_at")
@@ -152,9 +147,24 @@ enum TransactionStatus {
   REVERSED
 }
 
+model Beneficiary {
+  id              String @id @default(uuid())
+  userId          String @map("user_id")
+  bankCode        String @map("bank_code")
+  accountNumber   String @map("account_number")
+  beneficiaryName String @map("beneficiary_name")
+  currency        String @default("NGN")
+  bankName        String @map("bank_name")
+
+  @@index([id])
+  @@index([userId])
+  @@map("beneficiary")
+}
+
 model Notification {
   id      String   @id @default(uuid())
   userId  String   @map("user_id")
+  title   String
   message String
   sentAt  DateTime @default(now()) @map("sent_at")
 

@@ -5,7 +5,7 @@ import { WalletController } from './wallet.controller';
 import { PrismaModule } from 'src/infrastructure/prisma/prisma.module';
 import { LoggerModule } from 'src/common/logger/logger.module';
 import { JwtStrategy } from '../auth/strategy/jwt.strategy';
-import { WalletRepository } from 'src/infrastructure/prisma/repository/wallet.repository';
+import { WalletRepository } from './repo/wallet.repo';
 
 @Module({
   imports:[PrismaModule, LoggerModule],

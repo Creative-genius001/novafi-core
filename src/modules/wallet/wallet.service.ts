@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { AppLogger } from 'src/common/logger/logger.service';
-import { WalletRepository } from 'src/infrastructure/prisma/repository/wallet.repository';
+import { WalletRepository } from './repo/wallet.repo';
 
 @Injectable()
 export class WalletService {

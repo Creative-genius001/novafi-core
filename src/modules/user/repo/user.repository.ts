@@ -2,12 +2,11 @@
 
 import { PrismaService } from "../../../infrastructure/prisma/prisma.service";
 import { CreateUserDto } from "../../auth/dto/auth.dto";
-import { Prisma, User } from "@prisma/client"
+import { Prisma, User, KycStatus } from "@prisma/client"
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { AppLogger } from "../../../common/logger/logger.service";
-import { createBeneficiaryDto, UpdateUserDto } from "src/modules/user/dto/user.dto";
+import {  createBeneficiaryDto, UpdateUserDto } from "src/modules/user/dto/user.dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { KycLevel, UpdateLevelData } from "src/types/types";
 
 @Injectable()
 export class Repository {
@@ -41,16 +40,7 @@ export class Repository {
           },
       });
 
-      await tx.kycLevel.create({
-        data: {
-          userId: user.id,
-          level1: 'PENDING',
-          level2: 'NOT_STARTED',
-          level3: 'NOT_STARTED'
-        }
-      })
       
-
       return user;
 
     })
@@ -124,8 +114,8 @@ export class Repository {
               email: true,
               phone: true,
               novaId: true,
-              isVerified: true,
-              userKycLevel: true,
+              isEmailVerified: true,
+              isKycVerified: true,
               twoFaEnabled: true,
               twoFaSecret: true,
               referralCode: true,
@@ -178,56 +168,38 @@ export class Repository {
     });
   }
 
-  async updateKycStatus(userId: string, kyclevel: UpdateLevelData){
-    switch (kyclevel.level){
-      case KycLevel.ONE:
-        return await this.prisma.kycLevel.update({
-            where: { id: userId },
-            data: { level1: kyclevel.status },
-         });
-      case KycLevel.TWO:
-        return await this.prisma.kycLevel.update({
-            where: { id: userId },
-            data: { level2: kyclevel.status },
-         });
-      case KycLevel.THREE:
-        return await this.prisma.kycLevel.update({
-            where: { id: userId },
-            data: { level3: kyclevel.status },
-         });
-      default:
-        this.logger.error('INVALID_UPDATE_PARAMS', { level: kyclevel.level, status: kyclevel.status })
-        throw new BadRequestException('Invalid update parameters')
-    }
-    
-  }
 
-  async getKycLevel(userId: string){
+  async checkKycStatus(userId: string){
     return await this.prisma.user.findUnique({
             where: { id: userId },
-            select: { userKycLevel: true },
+            select: { isKycVerified: true },
         });
   }
 
-  async updateIsVerified(userId: string) {
+  async updateKycStatus(userId: string, status: KycStatus) {
   try {
-    const result = await this.prisma.$transaction(async (tx) => {
-      const updatedUser = await tx.user.update({
+    
+      return await this.prisma.user.update({
         where: { id: userId },
-        data: { isVerified: true },
+        data: { isKycVerified: status },
       });
 
-      const updatedKyc = await tx.kycLevel.update({
-        where: { userId },
-        data: { level1: 'VERIFIED' }
-      })
-
-      return { updatedUser, updatedKyc };
-    });
-
-    return result;
   } catch (error) {
-    this.logger.error('VERIFY_USER', error);
+    this.logger.error('KYC_VERIFICATION', error);
+    throw error;
+  }
+}
+
+async updateEmailStatus(userId: string) {
+  try {
+    
+      return await this.prisma.user.update({
+        where: { id: userId },
+        data: { isEmailVerified: 'VERIFIED' },
+      });
+
+  } catch (error) {
+    this.logger.error('EMAIL_VERIFICATION', error);
     throw error;
   }
 }
@@ -277,7 +249,8 @@ export class Repository {
         userId,
         bankCode: payload.bankCode,
         bankName: payload.bankName,
-        accountNumber: payload.accountNumber
+        accountNumber: payload.accountNumber,
+        beneficiaryName: payload.beneficiaryName
       }
     });
   }

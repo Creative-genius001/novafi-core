@@ -6,6 +6,7 @@ import {  Injectable } from "@nestjs/common";
 import { AppLogger } from "../../../common/logger/logger.service";
 import { PrismaService } from "src/infrastructure/prisma/prisma.service";
 
+
 @Injectable()
 export class WalletRepository {
   constructor(
@@ -25,6 +26,26 @@ async getBalance(userId: string){
         where: { userId },
         select: { balance: true }
     });
+}
+
+async updateWalletBalance(userId: string, amount: number){
+    return this.prisma.wallet.update({
+        where: { userId },
+        data: {
+            balance: amount
+        }
+    })
+}
+
+async updateWalletDetails(userId: string, bankName: string, accountNumber: string, orderRef: string) {
+    return this.prisma.wallet.update({
+        where: { userId },
+        data: {
+            accountNumber,
+            bankName,
+            orderRef
+        }
+    })
 }
 
 }

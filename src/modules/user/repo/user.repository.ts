@@ -7,6 +7,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { AppLogger } from "../../../common/logger/logger.service";
 import {  createBeneficiaryDto, UpdateUserDto } from "src/modules/user/dto/user.dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { BvnRecord } from "src/modules/kyc/interface/kyc.interface";
 
 @Injectable()
 export class Repository {
@@ -252,6 +253,15 @@ async updateEmailStatus(userId: string) {
         accountNumber: payload.accountNumber,
         beneficiaryName: payload.beneficiaryName
       }
+    });
+  }
+
+  async createBvnRecord(userId: string, payload: BvnRecord) {
+    return await this.prisma.bvnVerification.create({
+      data: { 
+        ...payload,
+        userId,
+       }
     });
   }
 }

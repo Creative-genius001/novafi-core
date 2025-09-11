@@ -16,7 +16,7 @@ export class TransferController {
         
     }
 
-    @Post('/transfer')
+    @Post()
     async transfer(@Body() payload: any) {
 
     }

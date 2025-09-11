@@ -28,9 +28,10 @@ model User {
   lastEmailChangeAt    DateTime? @map("last_email_change_at")
   lastPasswordChangeAt DateTime? @map("last_password_change_at")
 
-  wallet        Wallet?
-  transactions  Transaction[]
-  notifications Notification[]
+  wallet          Wallet?
+  transactions    Transaction[]
+  notifications   Notification[]
+  bvnVerification BvnVerification?
 
   @@index([email])
   @@index([isEmailVerified])
@@ -49,15 +50,19 @@ enum KycStatus {
 }
 
 model Wallet {
-  id        String   @id @default(uuid())
-  userId    String   @unique @map("user_id")
-  balance   Decimal  @default(0.0)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id            String   @id @default(uuid())
+  userId        String   @unique @map("user_id")
+  balance       Decimal  @default(0.0)
+  bankName      String?  @map("bank_name")
+  accountNumber String?  @map("account_number")
+  orderRef      String?  @map("order_ref")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
+  @@index([orderRef])
   @@map("wallet")
 }
 
@@ -97,6 +102,7 @@ model Transfer {
 
   @@index([referenceId])
   @@index([sessionId])
+  @@index([transactionId])
   @@map("transfer")
 }
 
@@ -114,6 +120,7 @@ model Deposit {
   transaction Transaction @relation(fields: [transactionId], references: [id])
 
   @@index([network])
+  @@index([transactionId])
   @@index([txHash])
   @@map("deposit")
 }
@@ -129,6 +136,7 @@ model Bill {
   transaction Transaction @relation(fields: [transactionId], references: [id])
 
   @@index([referenceId])
+  @@index([transactionId])
   @@map("bill")
 }
 
@@ -172,4 +180,29 @@ model Notification {
 
   @@index([userId])
   @@map("notification")
+}
+
+model BvnVerification {
+  id           String   @id @default(uuid())
+  userId       String   @unique @map("user_id")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  middleName   String?  @map("middle_name")
+  bvn          String   @map("bvn")
+  dateOfBirth  String   @map("date_of_birth")
+  email        String   @map("email")
+  phoneNumber  String   @map("phone_number")
+  nin          String
+  gender       String
+  bvnReference String   @map("bvn_reference")
+  faceImageUrl String?  @map("face_image_url")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([bvn])
+  @@index([bvnReference])
+  @@index([userId])
+  @@map("bvn_verification")
 }

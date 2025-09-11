@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 
-import { IsEmail, IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Matches } from 'class-validator';;
 
 const nigerianPhoneRegex = /^(\+234|0)?[789]\d{9}$/;
 
@@ -16,3 +16,18 @@ export class InitiateKycDto {
   })
   phone: string;
 }
+
+export class BvnVerificationDto {
+  @IsNotEmpty()
+  @IsEmail()
+  bvn: string;
+
+  @IsNotEmpty()
+  @IsEmail()
+  fistname: string;
+
+  @IsNotEmpty()
+  @IsEmail()
+  lastname: string;
+}
+

@@ -6,11 +6,13 @@ import { PrismaModule } from 'src/infrastructure/prisma/prisma.module';
 import { LoggerModule } from 'src/common/logger/logger.module';
 import { RedisModule } from 'src/infrastructure/redis/redis.module';
 import { JwtStrategy } from '../auth/strategy/jwt.strategy';
-import { Repository } from 'src/infrastructure/prisma/repository/user.repository';
+import { Repository } from 'src/modules/user/repo/user.repository';
+import { FlutterwaveModule } from 'src/flutterwave/flutterwave.module';
+import { WalletRepository } from '../wallet/repo/wallet.repo';
 
 @Module({
-  imports: [PrismaModule, LoggerModule, RedisModule],
+  imports: [PrismaModule, LoggerModule, RedisModule, FlutterwaveModule],
   controllers: [KycController],
-  providers: [KycService, JwtStrategy, Repository],
+  providers: [KycService, JwtStrategy, Repository, WalletRepository],
 })
 export class KycModule {}

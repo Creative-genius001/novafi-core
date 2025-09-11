@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
@@ -9,6 +8,7 @@ import { AxiosError, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConf
 import { firstValueFrom } from 'rxjs';
 import * as config from '../config/config'
 import { AppLogger } from 'src/common/logger/logger.service';
+import { generateIdempotencyKey } from 'src/utils/utils';
 
 @Injectable()
 export class FlutterwaveHttpService {
@@ -19,10 +19,15 @@ export class FlutterwaveHttpService {
     ) {
 
    this.httpService.axiosRef.interceptors.request.use((axiosConfig: InternalAxiosRequestConfig) => {
-      const token = config.config.FLUTTERWAVE_ACCESS_TOKEN;
+      const token = config.config.FLUTTERWAVE_SECRET_KEY;
+      const idempotencyKey = generateIdempotencyKey();
+      const tracerId = generateIdempotencyKey();
       if (token) {
         axiosConfig.headers = axiosConfig.headers || {};
         (axiosConfig.headers as any).set('Authorization', `Bearer ${token}`);
+        (axiosConfig.headers as any).set('Content-Type', 'application/json');
+        (axiosConfig.headers as any).set('X-Idempotency-Key', idempotencyKey);
+        (axiosConfig.headers as any).set('X-Trace-Id', tracerId);
       }
       return axiosConfig;
     });
@@ -89,11 +94,13 @@ export class FlutterwaveHttpService {
     this.logger.error(`${method} request failed`, {
       url,
       status,
+      idempotencyKey: axiosError.config?.headers.get('X-Idempotency-Key'),
+      tracerId: axiosError.config?.headers.get('X-Trace-Id'),
       error: flutterwaveError
     });
 
     if (status === 400) {
-      throw new BadRequestException('Invalid request parameters');
+      throw new BadRequestException('An error occured');
     } else if (status === 401) {
       throw new UnauthorizedException('Invalid Flutterwave credentials');
     } else if (status === 429) {

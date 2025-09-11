@@ -14,6 +14,7 @@ import { FlutterwaveHttpService } from './http.service';
       baseURL: 'https://api.flutterwave.com/v3'
     }),
   ],
-  providers: [FlutterwaveService, FlutterwaveHttpService]
+  providers: [FlutterwaveService, FlutterwaveHttpService],
+  exports: [FlutterwaveService]
 })
 export class FlutterwaveModule {}

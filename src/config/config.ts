@@ -10,6 +10,9 @@ const config = {
     FLUTTERWAVE_ENCRYPTION_KEY: process.env.FLUTTERWAVE_ENCRYPTION_KEY as string,
     FLUTTERWAVE_ACCESS_TOKEN: process.env.FLUTTERWAVE_ACCESS_TOKEN as string,
     FLUTTERWAVE_SECRET_KEY: process.env.FLUTTERWAVE_SECRET_KEY as string,
+    FIREBLOCKS_BASE_PATH: process.env.FIREBLOCKS_BASE_PATH as string,
+    FIREBLOCKS_API_KEY: process.env.FIREBLOCKS_API_KEY as string,
+    FIREBLOCKS_SECRET_KEY: process.env.FIREBLOCKS_SECRET_KEY as string,
 } as const
 
 export { config };

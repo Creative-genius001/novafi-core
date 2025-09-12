@@ -115,6 +115,7 @@ export class Repository {
               email: true,
               phone: true,
               novaId: true,
+              fireblocksVaultId: true,
               isEmailVerified: true,
               isKycVerified: true,
               twoFaEnabled: true,
@@ -263,5 +264,12 @@ async updateEmailStatus(userId: string) {
         userId,
        }
     });
+  }
+
+  async updateFireblocksVaultId( userId: string, fireblocksVaultId: string) {
+    return await this.prisma.user.update({
+      where: { id : userId },
+      data: { fireblocksVaultId }
+    })
   }
 }

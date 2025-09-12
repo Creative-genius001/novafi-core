@@ -22,16 +22,18 @@ model User {
   referralCode         String?   @unique @map("referral_code")
   referredBy           String?   @map("referred_by")
   refreshToken         String?   @map("refresh_token")
+  fireblocksVaultId    String?   @map("fireblocks_vault_id")
   expiresAt            String?   @map("expires_at")
   createdAt            DateTime  @default(now()) @map("created_at")
   updatedAt            DateTime  @updatedAt @map("updated_at")
   lastEmailChangeAt    DateTime? @map("last_email_change_at")
   lastPasswordChangeAt DateTime? @map("last_password_change_at")
 
-  wallet          Wallet?
-  transactions    Transaction[]
-  notifications   Notification[]
-  bvnVerification BvnVerification?
+  wallet           Wallet?
+  transactions     Transaction[]
+  notifications    Notification[]
+  bvnVerification  BvnVerification?
+  depositAddresses DepositAddress[]
 
   @@index([email])
   @@index([isEmailVerified])
@@ -40,6 +42,25 @@ model User {
   @@index([referralCode])
   @@index([novaId])
   @@map("user")
+}
+
+model DepositAddress {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  cryptoType String   @map("crypto_type") //BTC, ETH, SOL
+  network    String //ERC_20, BEP-20
+  address    String   @unique
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, cryptoType, network])
+  @@index([userId])
+  @@index([cryptoType])
+  @@index([isActive])
+  @@map("deposit_address")
 }
 
 enum KycStatus {

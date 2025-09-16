@@ -30,7 +30,6 @@ export class HttpExceptionsFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const errorMessage = exception.getResponse() as HttpException;
-
       responseObject = {
         ...responseObject,
         statusCode: status,
@@ -49,6 +48,7 @@ export class HttpExceptionsFilter implements ExceptionFilter {
     
       // Log the stack for non-HttpException errors
     if (exception instanceof Error) {
+
       responseObject = {
         ...responseObject,
         error: exception.name,
@@ -60,6 +60,7 @@ export class HttpExceptionsFilter implements ExceptionFilter {
         name: exception.name,
         stack: exception.stack,
       });
+
     } else {
        responseObject = {
         ...responseObject,

@@ -24,10 +24,10 @@ export class CryptoService {
         if(!user.fireblocksVaultId || user.fireblocksVaultId === null){
 
             const vaultId = await this.fireblocks.createVaultAccount(`Vault account for id: ${userId}`)
-            if(!vaultId) throw new InternalServerErrorException('vault id is undefined')
+            if(!vaultId) throw new InternalServerErrorException()
             
             const address = await this.fireblocks.generateDepositAddress(vaultId, cryptoType)
-            if(!address) throw new InternalServerErrorException('address is undefined')
+            if(!address) throw new InternalServerErrorException()
 
             const depositAddress: DepositAddress = {
                 cryptoType,
@@ -45,7 +45,7 @@ export class CryptoService {
             const depositAddress = await this.cryptoRepository.getDepositAddress(userId, cryptoType, network)
             if(!depositAddress){
                 const address = await this.fireblocks.generateDepositAddress(user.fireblocksVaultId, cryptoType)
-                if(!address) throw new InternalServerErrorException('address is undefined')
+                if(!address) throw new InternalServerErrorException()
 
                 const depositAddress: DepositAddress = {
                     cryptoType,

@@ -15,9 +15,10 @@ import { TransactionModule } from './modules/transaction/transaction.module';
 import { FlutterwaveModule } from './flutterwave/flutterwave.module';
 import { BankModule } from './modules/bank/bank.module';
 import { TransferModule } from './modules/transfer/transfer.module';
+import { CryptoModule } from './modules/crypto/crypto.module';
 
 @Module({
-  imports: [LoggerModule, AuthModule,  RedisModule.forRootAsync(), KycModule, WalletModule, UserModule, TransactionModule, FlutterwaveModule, BankModule, TransferModule],
+  imports: [LoggerModule, AuthModule,  RedisModule.forRootAsync(), KycModule, WalletModule, UserModule, TransactionModule, FlutterwaveModule, BankModule, TransferModule, CryptoModule],
   controllers: [AppController],
   providers: [
     AppService,

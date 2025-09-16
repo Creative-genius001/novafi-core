@@ -191,16 +191,40 @@ model Beneficiary {
 }
 
 model Notification {
-  id      String   @id @default(uuid())
-  userId  String   @map("user_id")
-  title   String
-  message String
-  sentAt  DateTime @default(now()) @map("sent_at")
+  id        String               @id @default(uuid())
+  userId    String               @map("user_id")
+  title     String
+  message   String
+  category  NotificationCategory
+  type      NotificationType
+  status    NotificationStatus   @default(PENDING)
+  isRead    Boolean              @default(false)
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id])
 
-  @@index([userId])
+  @@index([userId, createdAt])
+  @@index([category])
+  @@index([type])
   @@map("notification")
+}
+
+enum NotificationStatus {
+  PENDING
+  FAILED
+  SENT
+}
+
+enum NotificationCategory {
+  TRANSACTION
+  ACTIVITIES
+}
+
+enum NotificationType {
+  DEPOSIT
+  TRANSFER
+  SERVICES
 }
 
 model BvnVerification {

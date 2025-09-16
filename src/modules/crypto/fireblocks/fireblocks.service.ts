@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import * as fs from 'fs';
 import { AppLogger } from 'src/common/logger/logger.service';
 import { Fireblocks } from "@fireblocks/ts-sdk";
 import { config } from 'src/config/config';
@@ -15,7 +14,7 @@ export class FireblocksService {
     this.fireblocks = new Fireblocks({
         apiKey: config.FIREBLOCKS_API_KEY,
         basePath: config.FIREBLOCKS_BASE_PATH,
-        secretKey: fs.readFileSync(config.FIREBLOCKS_SECRET_KEY, "utf8")
+        secretKey: config.FIREBLOCKS_SECRET_KEY
     })
   }
 
@@ -35,7 +34,7 @@ export class FireblocksService {
 
     } catch (e) {
         this.logger.error('CREATE_VAULT_ACCOUNT', e)
-        throw new InternalServerErrorException('Error occured while creating vault account')
+        throw new InternalServerErrorException()
     }
   }
 
@@ -52,7 +51,7 @@ export class FireblocksService {
 
     } catch (e) {
         this.logger.error('GENERATE_DEPOSIT_ADDRESS', e)
-        throw new InternalServerErrorException('Error occured whilegenerating deposit address')
+        throw new InternalServerErrorException()
     }
   }
 }

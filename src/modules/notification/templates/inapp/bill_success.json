@@ -1,0 +1,5 @@
+{
+  "subject": "Bill Payment Successful",
+  "body": "Your bill payment of {{amount}} NGN for {{billType}} (Account: {{billAccount}}) has been processed. Date: {{date}}."
+}
+

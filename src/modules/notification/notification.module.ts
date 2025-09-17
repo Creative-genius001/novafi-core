@@ -9,6 +9,7 @@ import { join } from 'path';
 import { NotificationConsumer } from './jobs/notification.consumer';
 import { Repository } from '../user/repo/user.repository';
 import { NotificationRepository } from './repo/notification.repository';
+import { NodemailerService } from 'src/infrastructure/nodemailer/nodemailer.service';
 
 @Module({
   imports: [LoggerModule, PrismaModule,
@@ -21,7 +22,7 @@ import { NotificationRepository } from './repo/notification.repository';
       },
     }),
   ],
-  providers: [NotificationService, NotificationConsumer, Repository, NotificationRepository],
+  providers: [NotificationService, NotificationConsumer, Repository, NotificationRepository, NodemailerService],
   controllers: [NotificationController],
   exports: [NotificationService]
 })

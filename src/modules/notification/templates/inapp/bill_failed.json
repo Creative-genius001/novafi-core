@@ -1,0 +1,4 @@
+{
+  "subject": "Bill Payment Issue",
+  "body": "Your bill payment attempt of {{amount}} NGN for {{billType}} (Account: {{billAccount}}) did not go through. Reason: {{errorReason}}. Date: {{date}}."
+}

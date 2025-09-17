@@ -1,0 +1,5 @@
+{
+  "subject": "Airtime Purchase Successful",
+  "body": "Your airtime purchase of {{amount}} NGN for {{phoneNumber}} on {{network}} has been completed. Date: {{date}}."
+}
+

@@ -2,6 +2,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { NotificationService } from '../notification.service';
+import { NotificationJobData } from '../interface/notification.interface';
 
 @Processor('notifications')
 export class NotificationConsumer extends WorkerHost {
@@ -9,7 +10,7 @@ export class NotificationConsumer extends WorkerHost {
         super();
     }
 
-  async process(job: Job): Promise<any> {
+  async process(job: Job<NotificationJobData>): Promise<any> {
     
     await this.notificationService.sendNotification(job);
     return {}

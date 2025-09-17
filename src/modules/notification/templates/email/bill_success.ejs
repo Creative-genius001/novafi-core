@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bill Payment Successful</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+    .container { background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid #007bff; color: #007bff; }
+    .content { padding: 20px 0; }
+    .success-icon { font-size: 48px; color: #28a745; }
+    .amount { font-size: 24px; font-weight: bold; color: #28a745; }
+    .details { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; }
+    .footer { text-align: center; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
+    @media (max-width: 600px) { body { padding: 10px; } .container { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Bill Payment Successful!</h1>
+    </div>
+    <div class="content">
+      <div class="success-icon">✅</div>
+      <p>Hi <%= userName %>,</p>
+      <p>Your bill payment has been processed.</p>
+      <div class="amount">-<%= amount %> NGN</div>
+      <p>For: <%= billType %> (Account: <%= billAccount %>)</p>
+      <div class="details">
+        <strong>Payment Details:</strong><br>
+        Reference ID: <%= referenceId %><br>
+        Session ID: <%= sessionId %><br>
+        Date: <%= date %>
+      </div>
+      <p>Your payment is confirmed. View receipts in your app.</p>
+    </div>
+    <div class="footer">
+      <p>Best regards,<br>The Novafi Team</p>
+      <img src="<%= logoUrl %>" alt="Novafi Logo" style="max-width: 150px;">
+    </div>
+  </div>
+</body>
+</html>

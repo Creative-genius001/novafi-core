@@ -197,7 +197,7 @@ model Notification {
   message   String
   category  NotificationCategory
   type      NotificationType
-  status    NotificationStatus   @default(PENDING)
+  status    NotificationStatus   @default(SENT)
   isRead    Boolean              @default(false)
   createdAt DateTime             @default(now()) @map("created_at")
   updatedAt DateTime             @updatedAt @map("updated_at")

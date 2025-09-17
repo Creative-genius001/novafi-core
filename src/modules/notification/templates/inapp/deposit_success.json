@@ -1,0 +1,5 @@
+{
+  "subject": "Deposit Successful",
+  "body": "Your deposit of {{amount}} {{cryptoType}} on {{network}} has been credited as {{nairaAmount}} NGN. Date: {{date}}."
+}
+

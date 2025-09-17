@@ -1,0 +1,5 @@
+{
+  "subject": "Transfer Completed",
+  "body": "Your transfer of {{amount}} NGN to account {{recipientId}} has been completed. Date: {{date}}."
+}
+

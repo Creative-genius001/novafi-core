@@ -1,0 +1,5 @@
+{
+  "subject": "Deposit Issue",
+  "body": "Your deposit attempt of {{amount}} {{cryptoType}} on {{network}} did not go through. Reason: {{errorReason}}. Date: {{date}}."
+}
+

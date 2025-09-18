@@ -21,20 +21,17 @@
       <h1>OTP Verification</h1>
     </div>
     <div class="content">
-      <p>Hi <%= userName %>,</p>
-      <p>Your one-time password (OTP) for login/verification is:</p>
+      <p>Hi,</p>
+      <p>Your one-time password (OTP) is:</p>
       <div class="otp-code"><%= otpCode %></div>
       <div class="details">
         <strong>Details:</strong><br>
-        Expires in: 5 minutes<br>
-        Session ID: <%= sessionId %><br>
-        Device: <%= deviceInfo %>
+        Expires in: 1 minute<br>
       </div>
       <p>Enter this code in the app. If you didn't request this, contact support immediately.</p>
     </div>
     <div class="footer">
       <p>Best regards,<br>The Novafi Team</p>
-      <img src="<%= logoUrl %>" alt="Novafi Logo" style="max-width: 150px;">
     </div>
   </div>
 </body>

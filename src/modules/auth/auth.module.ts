@@ -11,6 +11,7 @@ import { LoggerModule } from '../../common/logger/logger.module';
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { RedisModule } from 'src/infrastructure/redis/redis.module';
 import { FlutterwaveModule } from 'src/flutterwave/flutterwave.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
     imports: [
@@ -23,6 +24,7 @@ import { FlutterwaveModule } from 'src/flutterwave/flutterwave.module';
         PassportModule,
         PrismaModule,
         RedisModule,
+        NotificationModule,
         FlutterwaveModule
     ],
   controllers: [AuthController],

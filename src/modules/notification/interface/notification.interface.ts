@@ -11,11 +11,25 @@ export type ICategory = 'TRANSACTION' | 'ACTIVITIES';
 
 export type INotificationType = 'DEPOSIT' | 'TRANSFER' | 'SERVICES';
 
+export enum NotificationTitle {
+  OTP_VERIFICATION = 'Otp Verification',
+  BILL_SUCCESS = 'Bill Payment Successful',
+  BILL_FAILED = 'Bill Payment Failed',
+  TRANSFER_SUCCESS = 'Transfer Successful',
+  TRANSFER_FAILED = 'Transfer Failed',
+  DEPOSIT_SUCCESS = 'Deposit Successful',
+  AIRTIME_SUCCESS = 'Airtime Payment Successful',
+  AIRTIME_FAILED = 'Airtime Payment Failed',
+  DEPOSIT_FAILED = 'Deposit Failed',
+  WELCOME = 'Welcome to Novafi'
+} 
+
 export interface NotificationJobData {
   userId: string,
   firstname: string,
   email: string,
   phone: string,
+  title: NotificationTitle,
   type: INotificationType,    
   medium: "email" | "sms" | "inapp",
   templatePath: string,
@@ -31,7 +45,11 @@ export type NotificationEvent =
   | "DEPOSIT_SUCCESS"
   | "DEPOSIT_FAILED"
   | "WELCOME"
-  | "OTP_VERIFICATION";
+  | "OTP_VERIFICATION"
+  | "AIRTIME_SUCCESS"
+  | "AIRTIME_FAILED"
+  | "BILL_FAILED"
+  | "TRANSFER_FAILED";
 
 export const NotificationMapping: Record<
   NotificationEvent,
@@ -60,5 +78,22 @@ export const NotificationMapping: Record<
   WELCOME: {
     medium: ["email"],
     template: "welcome"
-  }
+  },
+  AIRTIME_SUCCESS: {
+    medium: ["inapp"],
+    template: "airtime_success"
+  },
+  AIRTIME_FAILED: {
+    medium: ["inapp"],
+    template: "airtime_failed"
+  },
+  BILL_FAILED: {
+    medium: ["inapp"],
+    template: "bill_failed"
+  },
+  TRANSFER_FAILED: {
+    medium: ["inapp"],
+    template: "transfer_failed"
+  },
+  
 };

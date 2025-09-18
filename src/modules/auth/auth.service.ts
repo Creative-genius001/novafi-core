@@ -11,9 +11,11 @@ import { SignupResponse } from './interface/auth.interface';
 import { generateSecureOTP, generateNovaId } from 'src/utils/utils';
 import { RedisService } from 'src/infrastructure/redis/redis.service';
 import { maskEmail } from 'src/utils/maskEmail.utils';
-import { changeEmailOtp, sendSigupOtp } from './nodemailer/nodemailer';
+import { changeEmailOtp } from './nodemailer/nodemailer';
 import { RedisLockService } from 'src/infrastructure/redis/redis-lock.service';
 import { hashOtp, verifyOtpHash, withinCooldown } from './helper/helper';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationTitle } from '../notification/interface/notification.interface';
 
 interface JwtPayload {
   sub: string;
@@ -34,6 +36,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly repo: Repository,
         private readonly redis: RedisService,
+        private readonly notificationService: NotificationService,
         private readonly redisLock: RedisLockService,
     ){}
 
@@ -123,7 +126,7 @@ export class AuthService {
         const otp = generateSecureOTP()
         await this.redis.set(`otp:${user.id}`, otp, 60);
 
-        await sendSigupOtp(user.email, otp)
+        await this.notificationService.queueNotification(user.id, 'SERVICES', 'OTP_VERIFICATION', NotificationTitle.OTP_VERIFICATION , 'ACTIVITIES', {otpCode: otp})
 
         return { response };
     }
@@ -190,7 +193,7 @@ export class AuthService {
         const otp = generateSecureOTP()
         await this.redis.set(`otp:${payload.userId}`, otp, 60);
 
-        await sendSigupOtp(payload.email, otp)
+        await this.notificationService.queueNotification(payload.userId, 'SERVICES', 'OTP_VERIFICATION', NotificationTitle.OTP_VERIFICATION , 'ACTIVITIES', {otpCode: otp})
 
         return { message: 'Verication code has been sent to your email' }
     }

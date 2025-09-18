@@ -31,18 +31,20 @@ export class NodemailerService {
         });
     }
 
-    async sendEmail(email: string, message: string) {
+    async sendEmail(email: string, message: string, title: string) {
 
         const mailOptions: nodemailer.SendMailOptions = {
             from: '"Novafi" admin@edspl.com.au',
             to: email,
-            subject: 'OTP Verification Code',
+            subject: title,
             text: message,
             html: message,
         };
 
         try {
             await this.transporter.sendMail(mailOptions);
+
+            this.logger.info(`Email sent to ${email}`, message)
         } catch (error) {
             this.logger.error('SEND_EMAIL', error)
             throw new InternalServerErrorException('Failed to send email');

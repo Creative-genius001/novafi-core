@@ -9,9 +9,9 @@ import { Notification } from '@prisma/client';
 import * as fs from "fs";
 import * as path from "path";
 import * as ejs from "ejs";
-import Handlebars from "handlebars";
-import { ICategory, INotificationType, NotificationEvent, NotificationJobData, NotificationMapping } from './interface/notification.interface';
+import { ICategory, INotificationType, NotificationEvent, NotificationJobData, NotificationMapping, NotificationTitle } from './interface/notification.interface';
 import { NodemailerService } from 'src/infrastructure/nodemailer/nodemailer.service';
+import { NotificationGateway } from 'src/infrastructure/event/notification.event';
 
 @Injectable()
 export class NotificationService {
@@ -23,6 +23,7 @@ export class NotificationService {
         private readonly userRepository: Repository,
         private readonly notificationRepository: NotificationRepository,
         private readonly nodemailerService: NodemailerService,
+        private readonly gateway: NotificationGateway,
         @InjectQueue('notifications') private readonly notificationQueue: Queue,
     ){}
 
@@ -30,6 +31,7 @@ export class NotificationService {
         userId: string,
         type: INotificationType,
         event: NotificationEvent,
+        title: NotificationTitle,
         category: ICategory,
         metadata: Record<string, any>,
     ) {
@@ -43,6 +45,11 @@ export class NotificationService {
 
             const templatePath = path.join(this.basePath, medium, templateName);
 
+            if (!fs.existsSync(templatePath)) {
+                throw new Error(`Template not found: ${templatePath}`);
+            }
+
+
             try {
 
                 const user = await this.userRepository.findById(userId);
@@ -50,7 +57,19 @@ export class NotificationService {
                     this.logger.warn('User not found for notification', { userId, type });
                     throw new BadRequestException('User not found!');
                 }
-            
+                
+                this.logger.log({
+                    userId,
+                    firstname: user.firstname,
+                    email: user.email,
+                    phone: user.phone,
+                    medium,
+                    type,
+                    title,
+                    category,
+                    templatePath,
+                    metadata,
+                })
 
                 await this.notificationQueue.add('send-notification', {
                     userId,
@@ -59,6 +78,7 @@ export class NotificationService {
                     phone: user.phone,
                     medium,
                     type,
+                    title,
                     category,
                     templatePath,
                     metadata,
@@ -81,12 +101,12 @@ export class NotificationService {
 
     async sendNotification(job: Job<NotificationJobData>){
 
-        const { userId, email, firstname, type, medium, templatePath, metadata, category } = job.data;
+        const { userId, email, firstname, type, medium, templatePath, metadata, category, title } = job.data;
         
         
         switch (medium) {
             case 'email':
-                await this.sendEmail(userId, firstname, email, templatePath, metadata);
+                await this.sendEmail(userId, firstname, email, templatePath, metadata, title);
                 break;
             case 'sms':
                 await this.sendSms();
@@ -103,11 +123,13 @@ export class NotificationService {
 
     }
 
-    private async sendEmail(userId: string, firstname: string, email: string, templatePath: string, metadata: Record<string, any>) {
+    private async sendEmail(userId: string, firstname: string, email: string, templatePath: string, metadata: Record<string, any>, title: string) {
 
         const emailTemplate = this.renderEmail(templatePath, metadata);
 
-        await this.nodemailerService.sendEmail(email, emailTemplate)
+        await this.nodemailerService.sendEmail(email, emailTemplate, title)
+
+      
     }
 
     private async sendSms() {
@@ -121,13 +143,14 @@ export class NotificationService {
             let notification: Notification | null = null;  
 
             const tempJson  = this.renderJsonTemplate(templatePath, metadata);
+            this.logger.debug('json template', tempJson)
             const notificationObj = {
                 type,
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                message: tempJson.message,
+                message: tempJson.body,
                 category,
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                title: tempJson.title,
+                title: tempJson.subject,
             }
                     
             notification = await this.notificationRepository.createNotification(
@@ -141,11 +164,7 @@ export class NotificationService {
                 throw new InternalServerErrorException()
             }
 
-            //emit to websocket
-
-
-
-            return notification;
+            this.gateway.sendNotification(userId, notification);
                 
             } catch (error) {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -176,18 +195,20 @@ export class NotificationService {
     }
 
     private renderEmail(filePath: string, data: Record<string, any>): string {
-        const ext = path.extname(filePath);
 
-        const template = fs.readFileSync(filePath, "utf-8");
+        try {
+             const template = fs.readFileSync(filePath, "utf-8");
+        
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+            const render = ejs.render(template, data) as string;
 
-        if (ext === ".ejs") {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-            return ejs.render(template, data);
-        } else if (ext === ".hbs") {
-            const compile = Handlebars.compile(template);
-            return compile(data);
-        } else {
-            throw new Error(`Unsupported email template engine: ${ext}`);
+            return render;
+
+        } catch (error) {
+            this.logger.error('EJS rendering failed:', error);
+            throw error;
         }
+
+       
     }
 }

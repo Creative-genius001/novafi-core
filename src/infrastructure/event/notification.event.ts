@@ -21,7 +21,7 @@ interface JwtPayload {
 
 @WebSocketGateway({
   cors: {
-    origin: '*', // TODO: restrict to your frontend origin in prod
+    origin: '*',
   },
 })
 export class NotificationGateway
@@ -58,8 +58,6 @@ export class NotificationGateway
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       (client as any).userId = payload.sub;
 
-      this.logger.log(payload.sub)
-      
       await client.join(`user:${payload.sub}`);
 
       this.logger.log(`Client ${client.id} connected as user:${payload.sub}`);
@@ -77,9 +75,9 @@ export class NotificationGateway
 
 
   @SubscribeMessage('notifications')
-  async handleSubscribe(@MessageBody() data: {userId: string }, @ConnectedSocket() client: Socket) {
-    await client.join(`user:${data.userId}`);
-    client.emit('joined', { message: `Joined room ${data.userId}` });
+  async handleSubscribe(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
+    await client.join(`user:${data}`);
+    client.emit('joined', { message: `Joined room ${data}` });
   }
 
   sendNotification(userId: string, notification: any) {

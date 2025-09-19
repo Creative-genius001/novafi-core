@@ -12,7 +12,7 @@ export type ICategory = 'TRANSACTION' | 'ACTIVITIES';
 export type INotificationType = 'DEPOSIT' | 'TRANSFER' | 'SERVICES';
 
 export enum NotificationTitle {
-  OTP_VERIFICATION = 'Otp Verification',
+  OTP_VERIFICATION = 'Welcome to Novafi- Verification',
   BILL_SUCCESS = 'Bill Payment Successful',
   BILL_FAILED = 'Bill Payment Failed',
   TRANSFER_SUCCESS = 'Transfer Successful',
@@ -21,7 +21,9 @@ export enum NotificationTitle {
   AIRTIME_SUCCESS = 'Airtime Payment Successful',
   AIRTIME_FAILED = 'Airtime Payment Failed',
   DEPOSIT_FAILED = 'Deposit Failed',
-  WELCOME = 'Welcome to Novafi'
+  WELCOME = 'Welcome to Novafi',
+  CHANGE_PASSWORD = '[VERIFICATION] Change Password',
+  CHANGE_EMAIL = '[VERIFICATION] Change Email',
 } 
 
 export interface NotificationJobData {
@@ -49,7 +51,8 @@ export type NotificationEvent =
   | "AIRTIME_SUCCESS"
   | "AIRTIME_FAILED"
   | "BILL_FAILED"
-  | "TRANSFER_FAILED";
+  | "TRANSFER_FAILED"
+  | "SECURITY";
 
 export const NotificationMapping: Record<
   NotificationEvent,
@@ -95,5 +98,9 @@ export const NotificationMapping: Record<
     medium: ["inapp"],
     template: "transfer_failed"
   },
+  SECURITY: {
+    medium: ["email"],
+    template: "security"
+  }
   
 };

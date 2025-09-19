@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OTP Verification</title>
+  <title>Change <%= name %></title>
   <style>
     body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
     .container { background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
@@ -18,11 +18,11 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>Welcome to Novafi!</h1>
+      <h1>Change <%= name %> Verification</h1>
     </div>
     <div class="content">
       <p>Hi,</p>
-      <p>To proceed further with your registration process on Novafi please use the OTP below</p>
+      <p>Verify that you are the one that initiated this action with the code below</p>
       <div class="otp-code"><%= otpCode %></div>
       <div class="details">
         <p>Please note that this OTP will only be valid for 1 minute</p><br>

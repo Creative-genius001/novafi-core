@@ -360,7 +360,7 @@ export class AuthService {
             10 * 60, 
         );
 
-        await changeEmailOtp(user.email, otp)
+        await this.notificationService.queueNotification(userId, 'SERVICES', 'SECURITY', NotificationTitle.CHANGE_PASSWORD , 'ACTIVITIES', {otpCode: otp, name: 'Password' })
 
         return { message: 'OTP sent to new email' };
     }

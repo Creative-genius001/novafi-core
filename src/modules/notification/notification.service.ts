@@ -57,19 +57,7 @@ export class NotificationService {
                     this.logger.warn('User not found for notification', { userId, type });
                     throw new BadRequestException('User not found!');
                 }
-                
-                this.logger.log({
-                    userId,
-                    firstname: user.firstname,
-                    email: user.email,
-                    phone: user.phone,
-                    medium,
-                    type,
-                    title,
-                    category,
-                    templatePath,
-                    metadata,
-                })
+        
 
                 await this.notificationQueue.add('send-notification', {
                     userId,
@@ -143,7 +131,6 @@ export class NotificationService {
             let notification: Notification | null = null;  
 
             const tempJson  = this.renderJsonTemplate(templatePath, metadata);
-            this.logger.debug('json template', tempJson)
             const notificationObj = {
                 type,
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -208,7 +195,10 @@ export class NotificationService {
             this.logger.error('EJS rendering failed:', error);
             throw error;
         }
-
        
+    }
+
+    async getNotifcations(userId: string) {
+        return await this.notificationRepository.getNotifications(userId)
     }
 }
